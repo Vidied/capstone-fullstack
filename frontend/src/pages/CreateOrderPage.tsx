@@ -42,6 +42,7 @@ export const CreateOrderPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [selectedCategory, setSelectedCategory] = useState<string>("TUTTI");
+  const [isTakeaway, setIsTakeaway] = useState<boolean>(false);
 
   useEffect(() => {
     dispatch(fetchProductsThunk());
@@ -91,6 +92,11 @@ export const CreateOrderPage: React.FC = () => {
         .filter((category): category is string => Boolean(category)),
     ),
   );
+
+  const handleOrderTypeChange = (type: OrderType) => {
+    setOrderType(type);
+    setIsTakeaway(type === "ASPORTO");
+  };
 
   const handleAddToCart = (product: Product) => {
     setCart((prevCart) => {
@@ -228,9 +234,7 @@ export const CreateOrderPage: React.FC = () => {
     <Container fluid className="py-4 menu-page-bg min-vh-100">
       <Row className="mb-3">
         <Col>
-          <h2 className="fw-bold" style={{ color: "#2b2b2b" }}>
-            Nuova Comanda
-          </h2>
+          <h2 className="fw-bold custom-black-color">Nuova Comanda</h2>
         </Col>
       </Row>
 
@@ -289,6 +293,7 @@ export const CreateOrderPage: React.FC = () => {
             onAddToCart={handleAddToCart}
             onUpdateQuantity={handleUpdateQuantityByIndex}
             onRemoveItem={handleRemoveItemByIndex}
+            isTakeaway={isTakeaway}
           />
         </Col>
 
@@ -301,13 +306,14 @@ export const CreateOrderPage: React.FC = () => {
             generalNotes={generalNotes}
             onTableNumberChange={handleTableChange}
             onCoverCountChange={setCoverCount}
-            onOrderTypeChange={setOrderType}
+            onOrderTypeChange={handleOrderTypeChange}
             onGeneralNotesChange={setGeneralNotes}
             onUpdateQuantity={handleUpdateQuantityByIndex}
             onUpdateNotes={handleUpdateNotesByIndex}
             onRemoveItem={handleRemoveItemByIndex}
             onSubmitOrder={handleSubmitOrder}
             isSubmitting={isSubmitting}
+            isTakeaway={isTakeaway}
           />
         </Col>
       </Row>

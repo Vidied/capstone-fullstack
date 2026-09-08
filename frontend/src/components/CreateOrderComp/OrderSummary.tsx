@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, Button, Form, InputGroup, ListGroup } from "react-bootstrap";
-import type { CartItem, OrderType } from "../interfaces/Order";
+import type { CartItem, OrderType } from "../../interfaces/Order";
 
 interface OrderSummaryProps {
   cart: CartItem[];
@@ -17,6 +17,7 @@ interface OrderSummaryProps {
   onRemoveItem: (index: number) => void;
   onSubmitOrder: () => void;
   isSubmitting: boolean;
+  isTakeaway: boolean;
 }
 
 export const OrderSummary: React.FC<OrderSummaryProps> = ({
@@ -34,11 +35,14 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
   onRemoveItem,
   onSubmitOrder,
   isSubmitting,
+  isTakeaway,
 }) => {
-  const totalAmount = cart.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0,
-  );
+  const totalAmount = cart.reduce((sum, item) => {
+    const price = isTakeaway
+      ? (item.product.takeawayPrice ?? item.product.price)
+      : item.product.price;
+    return sum + price * item.quantity;
+  }, 0);
 
   const isTableProvided = tableNumber.trim() !== "";
   const isCoverProvided = coverCount.toString().trim() !== "";
@@ -51,10 +55,10 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
 
   return (
     <Card
-      className="bg-white text-dark shadow-sm sticky-top"
-      style={{ top: "1rem", border: "1px solid #ced4da" }}
+      className="bg-custom-theme shadow-sm sticky-top card-border-custom"
+      style={{ top: "1rem" }}
     >
-      <Card.Header className="border-bottom bg-white text-dark fw-bold h5 py-3">
+      <Card.Header className="border-bottom bg-custom-theme fw-bold h5 py-3">
         Riepilogo Comanda
       </Card.Header>
 
@@ -70,7 +74,7 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
                 variant={
                   orderType === "TAVOLO" ? "primary" : "outline-secondary"
                 }
-                className="w-50"
+                className={`w-50 ${orderType === "TAVOLO" ? "toggle-btn-active" : "toggle-btn-inactive"}`}
                 onClick={() => onOrderTypeChange("TAVOLO")}
               >
                 Tavolo
@@ -80,7 +84,7 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
                 variant={
                   orderType === "ASPORTO" ? "primary" : "outline-secondary"
                 }
-                className="w-50"
+                className={`w-50 ${orderType === "ASPORTO" ? "toggle-btn-active" : "toggle-btn-inactive"}`}
                 onClick={() => onOrderTypeChange("ASPORTO")}
               >
                 Asporto
@@ -100,8 +104,7 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
                   value={tableNumber}
                   isInvalid={orderType === "TAVOLO" && !isTableProvided}
                   onChange={(e) => onTableNumberChange(e.target.value)}
-                  className="bg-white text-dark"
-                  style={{ border: "1px solid #adb5bd" }}
+                  className="bg-custom-theme card-border-custom"
                 />
                 <Form.Control.Feedback type="invalid">
                   Obbligatorio.
@@ -122,8 +125,7 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
                     !isCoverProvided
                   }
                   onChange={(e) => onCoverCountChange(e.target.value)}
-                  className="bg-white text-dark"
-                  style={{ border: "1px solid #adb5bd" }}
+                  className="bg-custom-theme card-border-custom"
                 />
                 <Form.Control.Feedback type="invalid">
                   Obbligatori.
@@ -142,8 +144,7 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
               placeholder="Es. Servire prima i bambini"
               value={generalNotes}
               onChange={(e) => onGeneralNotesChange(e.target.value)}
-              className="bg-white text-dark"
-              style={{ border: "1px solid #adb5bd" }}
+              className="bg-custom-theme card-border-custom"
             />
           </Form.Group>
         </Form>
@@ -156,76 +157,76 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
           </p>
         ) : (
           <ListGroup variant="flush" className="mb-3">
-            {cart.map(({ product, quantity, notes }, index) => (
-              <ListGroup.Item
-                key={`${product.id}-${index}`}
-                className="bg-white text-dark border-bottom px-0 py-2"
-              >
-                <div className="d-flex justify-content-between align-items-start mb-1">
-                  <span className="fw-bold me-2">{product.name}</span>
-                  <span className="text-success fw-bold">
-                    € {(product.price * quantity).toFixed(2)}
-                  </span>
-                </div>
+            {cart.map(({ product, quantity, notes }, index) => {
+              const activeItemPrice = isTakeaway
+                ? (product.takeawayPrice ?? product.price)
+                : product.price;
 
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                  <InputGroup size="sm" style={{ width: "110px" }}>
+              return (
+                <ListGroup.Item
+                  key={`${product.id}-${index}`}
+                  className="bg-custom-theme border-bottom px-0 py-2"
+                >
+                  <div className="d-flex justify-content-between align-items-start mb-1">
+                    <span className="fw-bold me-2">{product.name}</span>
+                    <span className="text-success fw-bold">
+                      € {(activeItemPrice * quantity).toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <InputGroup size="sm" style={{ width: "110px" }}>
+                      <Button
+                        variant="outline-dark"
+                        className="card-border-custom"
+                        onClick={() =>
+                          onUpdateQuantity(index, Math.max(1, quantity - 1))
+                        }
+                      >
+                        -
+                      </Button>
+                      <Form.Control
+                        readOnly
+                        value={quantity}
+                        className="bg-custom-theme text-dark text-center px-1 card-border-custom"
+                      />
+                      <Button
+                        variant="outline-dark"
+                        className="card-border-custom"
+                        onClick={() => onUpdateQuantity(index, quantity + 1)}
+                      >
+                        +
+                      </Button>
+                    </InputGroup>
+
                     <Button
-                      variant="outline-dark"
-                      style={{ border: "1px solid #adb5bd" }}
-                      onClick={() =>
-                        onUpdateQuantity(index, Math.max(1, quantity - 1))
-                      }
+                      variant="link"
+                      className="text-danger p-0 text-decoration-none small"
+                      onClick={() => onRemoveItem(index)}
                     >
-                      -
+                      Rimuovi
                     </Button>
-                    <Form.Control
-                      readOnly
-                      value={quantity}
-                      className="bg-white text-dark text-center px-1"
-                      style={{ border: "1px solid #adb5bd" }}
-                    />
-                    <Button
-                      variant="outline-dark"
-                      style={{ border: "1px solid #adb5bd" }}
-                      onClick={() => onUpdateQuantity(index, quantity + 1)}
-                    >
-                      +
-                    </Button>
-                  </InputGroup>
+                  </div>
 
-                  <Button
-                    variant="link"
-                    className="text-danger p-0 text-decoration-none small"
-                    onClick={() => onRemoveItem(index)}
-                  >
-                    Rimuovi
-                  </Button>
-                </div>
-
-                <Form.Control
-                  size="sm"
-                  type="text"
-                  placeholder="Note piatto"
-                  value={notes || ""}
-                  onChange={(e) => onUpdateNotes(index, e.target.value)}
-                  className="bg-white text-dark small"
-                  style={{ border: "1px solid #adb5bd" }}
-                />
-              </ListGroup.Item>
-            ))}
+                  <Form.Control
+                    size="sm"
+                    type="text"
+                    placeholder="Note piatto"
+                    value={notes || ""}
+                    onChange={(e) => onUpdateNotes(index, e.target.value)}
+                    className="bg-custom-theme card-border-custom text-dark"
+                  />
+                </ListGroup.Item>
+              );
+            })}
           </ListGroup>
         )}
 
         <hr className="border-top" />
 
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <span className="h5 mb-0" style={{ color: "#2b2b2b" }}>
-            Totale:
-          </span>
-          <span className="h4 mb-0 text-success fw-bold">
-            € {totalAmount.toFixed(2)}
-          </span>
+          <span className="order-total-label">Totale:</span>
+          <span className="order-total-amount">€ {totalAmount.toFixed(2)}</span>
         </div>
 
         <Button

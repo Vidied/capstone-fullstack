@@ -36,7 +36,7 @@ export const ProductCard = ({ product, isTakeaway }: ProductCardProps) => {
           onClick={handleOpenModal}
         >
           <div className="d-flex justify-content-between align-items-baseline mb-1">
-            <h5 className="product-title h5 mb-0 fs-4 custom-black-color fw-bold text-start">
+            <h5 className="product-title h5 mb-0 fs-4 custom-black-color fw-bold text-start flex-grow-1 pe-2 ">
               {product.name}
             </h5>
             <div>

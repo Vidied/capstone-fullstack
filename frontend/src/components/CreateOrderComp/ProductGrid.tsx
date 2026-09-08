@@ -20,6 +20,7 @@ interface ProductGridProps {
   onAddToCart: (product: Product) => void;
   onUpdateQuantity: (index: number, quantity: number) => void;
   onRemoveItem: (index: number) => void;
+  isTakeaway: boolean;
 }
 
 export const ProductGrid: React.FC<ProductGridProps> = ({
@@ -30,6 +31,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   onAddToCart,
   onUpdateQuantity,
   onRemoveItem,
+  isTakeaway,
 }) => {
   if (isLoading) {
     return (
@@ -61,25 +63,23 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
         );
         const cartItem = cartItemIndex !== -1 ? cart[cartItemIndex] : null;
 
+        const activePrice = isTakeaway
+          ? (product.takeawayPrice ?? product.price)
+          : product.price;
+
         return (
           <Col key={product.id}>
-            <Card
-              className="h-100 bg-white text-dark shadow-sm"
-              style={{ border: "1px solid #ced4da" }}
-            >
+            <Card className="h-100 bg-custom-theme shadow-sm product-card-clean card-border-custom">
               <Card.Body className="d-flex flex-column justify-content-between">
                 <div>
-                  <Card.Title
-                    className="h6 fw-bold mb-2"
-                    style={{ color: "#2b2b2b" }}
-                  >
+                  <Card.Title className="h6 fw-bold mb-2 text-truncate-2 custom-black-color">
                     {product.name}
                   </Card.Title>
                 </div>
 
                 <div className="d-flex justify-content-between align-items-center mt-2">
                   <span className="fw-bold text-success h6 mb-0">
-                    € {product.price.toFixed(2)}
+                    € {activePrice.toFixed(2)}
                   </span>
 
                   {cartItem ? (
@@ -87,7 +87,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
                       <InputGroup size="sm" style={{ width: "100px" }}>
                         <Button
                           variant="outline-dark"
-                          style={{ border: "1px solid #adb5bd" }}
+                          className="card-border-custom"
                           onClick={() => {
                             if (cartItem.quantity > 1) {
                               onUpdateQuantity(
@@ -104,12 +104,11 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
                         <Form.Control
                           readOnly
                           value={cartItem.quantity}
-                          className="bg-white text-dark text-center px-1"
-                          style={{ border: "1px solid #adb5bd" }}
+                          className="bg-custom-theme text-center px-1 card-border-custom"
                         />
                         <Button
                           variant="outline-dark"
-                          style={{ border: "1px solid #adb5bd" }}
+                          className="card-border-custom"
                           onClick={() =>
                             onUpdateQuantity(
                               cartItemIndex,
