@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Button, Form, Modal } from "react-bootstrap";
-import type { Ingredient, IngredientRequestDTO } from "../interfaces/Product";
+import type {
+  Ingredient,
+  IngredientRequestDTO,
+} from "../../interfaces/Product";
 
 interface IngredientModalProps {
   show: boolean;
@@ -30,13 +33,13 @@ export const IngredientModal: React.FC<IngredientModalProps> = ({
 
   return (
     <Modal show={show} onHide={onHide} centered>
-      <Modal.Header closeButton className="bg-white border-bottom py-3">
-        <Modal.Title className="fw-bold" style={{ color: "#2b2b2b" }}>
+      <Modal.Header closeButton className="modal-header-custom">
+        <Modal.Title className="modal-title-custom">
           {ingredientToEdit ? "Modifica Ingrediente" : "Nuovo Ingrediente"}
         </Modal.Title>
       </Modal.Header>
       <Form onSubmit={handleSubmit}>
-        <Modal.Body className="bg-white text-dark py-4">
+        <Modal.Body className="modal-body-custom">
           <Form.Group className="mb-3">
             <Form.Label className="fw-bold">Nome Ingrediente</Form.Label>
             <Form.Control
@@ -57,7 +60,7 @@ export const IngredientModal: React.FC<IngredientModalProps> = ({
             onChange={(e) => setIsAvailable(e.target.checked)}
           />
         </Modal.Body>
-        <Modal.Footer className="bg-white border-top">
+        <Modal.Footer className="modal-footer-custom">
           <Button variant="outline-secondary" onClick={onHide}>
             Annulla
           </Button>

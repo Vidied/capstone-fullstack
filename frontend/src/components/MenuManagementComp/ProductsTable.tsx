@@ -1,6 +1,6 @@
 import React from "react";
 import { Badge, Button, Card, Form, Table } from "react-bootstrap";
-import type { Product } from "../interfaces/Product";
+import type { Product } from "../../interfaces/Product";
 import { ActionButtons } from "./ActionButtons";
 
 interface ProductsTableProps {
@@ -21,14 +21,9 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
   onToggleAvailability,
 }) => {
   return (
-    <Card
-      className="shadow-sm text-dark bg-white"
-      style={{ border: "1px solid #ced4da" }}
-    >
-      <Card.Header className="d-flex justify-content-between align-items-center bg-white border-bottom py-3">
-        <h5 className="mb-0 fw-bold" style={{ color: "#2b2b2b" }}>
-          Elenco Prodotti
-        </h5>
+    <Card className="shadow-sm text-dark bg-custom-theme card-border-custom">
+      <Card.Header className="d-flex justify-content-between align-items-center modal-header-custom py-3">
+        <h5 className="mb-0 modal-title-custom">Elenco Prodotti</h5>
         <Button
           variant="success"
           size="sm"
@@ -41,10 +36,7 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
       <Card.Body className="p-0">
         <Table responsive hover className="mb-0 align-middle text-dark">
           <thead>
-            <tr
-              className="text-muted border-bottom"
-              style={{ backgroundColor: "#faf8f5" }}
-            >
+            <tr className="table-header-custom border-bottom">
               <th className="py-3 ps-3">Nome</th>
               <th className="d-none d-md-table-cell py-3">Categoria</th>
               <th className="py-3">Prezzo</th>
@@ -89,7 +81,7 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
                     € {product.price ? product.price.toFixed(2) : "0.00"}
                   </td>
 
-                  <td className="d-none d-md-table-cell">
+                  <td className="d-none d-lg-table-cell">
                     {ingredientsList.length > 0 ? (
                       <div className="d-flex flex-wrap gap-1">
                         {ingredientsList.map((ingName, index) => (

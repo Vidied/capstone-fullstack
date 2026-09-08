@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button, Form, Modal } from "react-bootstrap";
-import type { Category, CategoryRequestDTO } from "../interfaces/Product";
+import type { Category, CategoryRequestDTO } from "../../interfaces/Product";
 
 interface CategoryModalProps {
   show: boolean;
@@ -40,13 +40,13 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
 
   return (
     <Modal show={show} onHide={onHide} centered>
-      <Modal.Header closeButton className="bg-white border-bottom py-3">
-        <Modal.Title className="fw-bold" style={{ color: "#2b2b2b" }}>
+      <Modal.Header closeButton className="modal-header-custom">
+        <Modal.Title className="modal-title-custom">
           {categoryToEdit ? "Modifica Categoria" : "Nuova Categoria"}
         </Modal.Title>
       </Modal.Header>
       <Form onSubmit={handleSubmit}>
-        <Modal.Body className="bg-white text-dark py-4">
+        <Modal.Body className="modal-body-custom">
           <Form.Group className="mb-3">
             <Form.Label className="fw-bold">Nome Categoria</Form.Label>
             <Form.Control
@@ -80,7 +80,7 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
                   .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
                   .map((cat) => (
                     <option key={cat.id} value={cat.displayOrder}>
-                      Posizione #{cat.displayOrder} - ({cat.name})
+                      #{cat.displayOrder} - ({cat.name})
                     </option>
                   ))}
               </Form.Select>
@@ -91,7 +91,7 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
             </Form.Group>
           )}
         </Modal.Body>
-        <Modal.Footer className="bg-white border-top">
+        <Modal.Footer className="modal-footer-custom">
           <Button variant="outline-secondary" onClick={onHide}>
             Annulla
           </Button>

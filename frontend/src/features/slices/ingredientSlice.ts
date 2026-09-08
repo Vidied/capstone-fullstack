@@ -107,7 +107,8 @@ export const ingredientsSlice = createSlice({
         state.error = action.payload || "Errore sconosciuto";
       })
       .addCase(createIngredientThunk.fulfilled, (state, action) => {
-        state.ingredients.push(action.payload);
+        //unshift per farlo comparire in cima in modo da vedere subito la presenza del nuovo ingrediente (al riavvio si metterà dove dovrebbe)
+        state.ingredients.unshift(action.payload);
       })
       .addCase(createIngredientThunk.rejected, (state, action) => {
         state.error = action.payload || "Errore durante la creazione";

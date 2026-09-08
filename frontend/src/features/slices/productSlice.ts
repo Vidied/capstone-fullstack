@@ -118,7 +118,8 @@ export const productSlice = createSlice({
         state.error = action.payload || "Errore sconosciuto";
       })
       .addCase(createProductThunk.fulfilled, (state, action) => {
-        state.products.push(action.payload);
+        //unshift per farlo comparire in cima in modo da vedere subito la presenza del nuovo prodotto (al riavvio si metterà dove dovrebbe)
+        state.products.unshift(action.payload);
       })
       .addCase(createProductThunk.rejected, (state, action) => {
         state.error = action.payload || "Errore durante la creazione";

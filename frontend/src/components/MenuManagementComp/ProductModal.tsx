@@ -5,7 +5,8 @@ import type {
   Ingredient,
   Product,
   ProductRequestDTO,
-} from "../interfaces/Product";
+} from "../../interfaces/Product";
+import type { DestinationArea } from "../../interfaces/Order";
 
 interface ProductModalProps {
   show: boolean;
@@ -31,6 +32,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [price, setPrice] = useState<string | number>(
     productToEdit?.price ?? "",
   );
+  const [takeawayPrice, setTakeawayPrice] = useState<string | number>(
+    productToEdit?.takeawayPrice ?? "",
+  );
+  const [destinationArea, setDestinationArea] = useState<DestinationArea>(
+    productToEdit?.destinationArea ?? "CUCINA",
+  );
   const [isAvailable, setIsAvailable] = useState<boolean>(
     productToEdit?.isAvailable ?? true,
   );
@@ -38,7 +45,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     productToEdit?.categoryId || productToEdit?.category?.id || "",
   );
 
-  // Inizializzazione diretta degli ID degli ingredienti senza useEffect a cascata
   const initialIngredientIds = (() => {
     if (!productToEdit) return [];
     const rawRecord = productToEdit as unknown as Record<string, unknown>;
@@ -97,6 +103,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       name: name.trim(),
       description: description.trim(),
       price: Number(price) || 0,
+      takeawayPrice: takeawayPrice !== "" ? Number(takeawayPrice) : undefined,
+      destinationArea,
       isAvailable,
       categoryId: Number(categoryId),
       ingredientIds: selectedIngredientIds,
@@ -107,14 +115,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   };
 
   return (
-    <Modal show={show} onHide={onHide} centered>
-      <Modal.Header closeButton className="bg-white border-bottom py-3">
-        <Modal.Title className="fw-bold" style={{ color: "#2b2b2b" }}>
+    <Modal show={show} onHide={onHide} centered size="lg">
+      <Modal.Header closeButton className="modal-header-custom">
+        <Modal.Title className="modal-title-custom">
           {productToEdit ? "Modifica Prodotto" : "Nuovo Prodotto"}
         </Modal.Title>
       </Modal.Header>
       <Form onSubmit={handleSubmit}>
-        <Modal.Body className="bg-white text-dark py-4">
+        <Modal.Body className="modal-body-custom">
           <Form.Group className="mb-3">
             <Form.Label className="fw-bold">Nome Prodotto</Form.Label>
             <Form.Control
@@ -138,33 +146,76 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             />
           </Form.Group>
 
-          <Form.Group className="mb-3">
-            <Form.Label className="fw-bold">Prezzo (€)</Form.Label>
-            <Form.Control
-              type="number"
-              step="0.01"
-              required
-              placeholder="0.00"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-            />
-          </Form.Group>
+          <div className="row">
+            <div className="col-md-6">
+              <Form.Group className="mb-3">
+                <Form.Label className="fw-bold">Prezzo Tavolo (€)</Form.Label>
+                <Form.Control
+                  type="number"
+                  step="0.01"
+                  required
+                  placeholder="0.00"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                />
+              </Form.Group>
+            </div>
+            <div className="col-md-6">
+              <Form.Group className="mb-3">
+                <Form.Label className="fw-bold">
+                  Prezzo Asporto (€){" "}
+                  <span className="text-muted fw-normal small">
+                    (opzionale, default -2€)
+                  </span>
+                </Form.Label>
+                <Form.Control
+                  type="number"
+                  step="0.01"
+                  placeholder="Lascia vuoto per calcolo automatico"
+                  value={takeawayPrice}
+                  onChange={(e) => setTakeawayPrice(e.target.value)}
+                />
+              </Form.Group>
+            </div>
+          </div>
 
-          <Form.Group className="mb-3">
-            <Form.Label className="fw-bold">Categoria</Form.Label>
-            <Form.Select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              required
-            >
-              <option value="">Seleziona Categoria...</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </Form.Select>
-          </Form.Group>
+          <div className="row">
+            <div className="col-md-6">
+              <Form.Group className="mb-3">
+                <Form.Label className="fw-bold">Categoria</Form.Label>
+                <Form.Select
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  required
+                >
+                  <option value="">Seleziona Categoria...</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </div>
+            <div className="col-md-6">
+              <Form.Group className="mb-3">
+                <Form.Label className="fw-bold">
+                  Area di Stampa / Destinazione
+                </Form.Label>
+                <Form.Select
+                  value={destinationArea}
+                  onChange={(e) =>
+                    setDestinationArea(e.target.value as DestinationArea)
+                  }
+                  required
+                >
+                  <option value="CUCINA">Cucina</option>
+                  <option value="PIZZERIA">Pizzeria</option>
+                  <option value="SALA">Sala</option>
+                </Form.Select>
+              </Form.Group>
+            </div>
+          </div>
 
           <Form.Group className="mb-3">
             <Form.Label className="fw-bold">Ingredienti</Form.Label>
@@ -197,7 +248,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             />
           </Form.Group>
         </Modal.Body>
-        <Modal.Footer className="bg-white border-top">
+        <Modal.Footer className="modal-footer-custom">
           <Button variant="outline-secondary" onClick={onHide}>
             Annulla
           </Button>

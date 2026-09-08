@@ -9,6 +9,76 @@
   scrollbar-width: none;
 }
 
+.menu-page-bg {
+  background-color: #f7f4ee !important;
+  color: #2b2b2b;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  overflow-x: hidden;
+}
+
+.bg-custom-theme {
+  background-color: #ffffff;
+  color: #2b2b2b;
+}
+
+.modal-header-custom {
+  background-color: #faf8f5;
+  border-bottom: 1px solid #dee2e6;
+  padding: 1rem;
+}
+
+.modal-body-custom {
+  background-color: #ffffff;
+  color: #212529;
+  padding: 1.5rem 0;
+}
+
+.modal-footer-custom {
+  background-color: #faf8f5;
+  border-top: 1px solid #dee2e6;
+}
+
+.modal-title-custom {
+  font-weight: bold;
+  color: #333333;
+}
+
+.table-header-custom {
+  background-color: #faf8f5;
+  border-bottom: 1px solid #dee2e6;
+  color: #6c757d;
+}
+
+.card-border-custom {
+  border: 1px solid #dee2e6;
+}
+
+.product-card-clean {
+  background-color: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid #1a1a1a !important;
+  border-radius: 0 !important;
+  padding-bottom: 1rem;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.product-card-clean:hover {
+  opacity: 0.8;
+}
+
+.product-title {
+  font-family: "Playfair Display", serif;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  color: #1a1a1a;
+}
+
+.product-price {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 600;
+  color: #8b2626;
+}
+
 .text-truncate-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -18,13 +88,6 @@
   text-overflow: ellipsis;
   word-break: break-word;
   text-align: center;
-}
-
-.menu-page-bg {
-  background-color: #f7f4ee !important;
-  color: #2b2b2b;
-  font-family: "Plus Jakarta Sans", sans-serif;
-  overflow-x: hidden;
 }
 
 .category-scroll-container {
@@ -64,31 +127,5 @@
 }
 
 .custom-category-pills .nav-link:hover:not(.active) {
-  color: #8b2626;
-}
-
-.product-card-clean {
-  background-color: transparent !important;
-  border: none !important;
-  border-bottom: 1px solid #1a1a1a !important;
-  border-radius: 0 !important;
-  padding-bottom: 1rem;
-  transition: opacity 0.2s ease-in-out;
-}
-
-.product-card-clean:hover {
-  opacity: 0.8;
-}
-
-.product-title {
-  font-family: "Playfair Display", serif;
-  font-weight: 800;
-  letter-spacing: -0.2px;
-  color: #1a1a1a;
-}
-
-.product-price {
-  font-family: "Plus Jakarta Sans", sans-serif;
-  font-weight: 600;
   color: #8b2626;
 }

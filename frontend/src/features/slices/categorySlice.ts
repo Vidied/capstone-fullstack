@@ -110,7 +110,8 @@ export const categorySlice = createSlice({
         state.error = action.payload || "Errore sconosciuto";
       })
       .addCase(createCategoryThunk.fulfilled, (state, action) => {
-        state.categories.push(action.payload);
+        //unshift per farlo comparire in cima in modo da vedere subito la presenza del nuova categoria (al riavvio si metterà dove dovrebbe)
+        state.categories.unshift(action.payload);
       })
       .addCase(createCategoryThunk.rejected, (state, action) => {
         state.error = action.payload || "Errore durante la creazione";

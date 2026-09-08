@@ -16,6 +16,7 @@ export interface Product {
   name: string;
   description?: string;
   price: number;
+  takeawayPrice?: number;
   isAvailable: boolean;
   categoryId?: number;
   categoryName?: string;
@@ -38,9 +39,11 @@ export interface ProductRequestDTO {
   name: string;
   description?: string;
   price: number;
+  takeawayPrice?: number;
   isAvailable?: boolean;
   categoryId: number;
   ingredientIds?: number[];
+  destinationArea?: DestinationArea;
 }
 
 export interface ProductResponseDTO {
@@ -48,10 +51,12 @@ export interface ProductResponseDTO {
   name: string;
   description?: string;
   price: number;
+  takeawayPrice?: number;
   isAvailable: boolean;
   categoryId?: number;
   categoryName?: string;
   ingredientNames?: string[];
+  destinationArea: DestinationArea;
 }
 
 export interface Ingredient {

@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Card, Table } from "react-bootstrap";
-import type { Category } from "../interfaces/Product";
+import type { Category } from "../../interfaces/Product";
 import { ActionButtons } from "./ActionButtons";
 
 interface CategoriesTableProps {
@@ -19,14 +19,9 @@ export const CategoriesTable: React.FC<CategoriesTableProps> = ({
   onDelete,
 }) => {
   return (
-    <Card
-      className="shadow-sm text-dark bg-white"
-      style={{ border: "1px solid #ced4da" }}
-    >
-      <Card.Header className="d-flex justify-content-between align-items-center bg-white border-bottom py-3">
-        <h5 className="mb-0 fw-bold" style={{ color: "#2b2b2b" }}>
-          Gestione Categorie
-        </h5>
+    <Card className="shadow-sm bg-custom-theme card-border-custom">
+      <Card.Header className="d-flex justify-content-between align-items-center modal-header-custom">
+        <h5 className="mb-0 modal-title-custom">Gestione Categorie</h5>
         <Button
           variant="success"
           size="sm"
@@ -37,12 +32,9 @@ export const CategoriesTable: React.FC<CategoriesTableProps> = ({
         </Button>
       </Card.Header>
       <Card.Body className="p-0">
-        <Table responsive hover className="mb-0 align-middle text-dark">
+        <Table responsive hover className="mb-0 align-middle">
           <thead>
-            <tr
-              className="text-muted border-bottom"
-              style={{ backgroundColor: "#faf8f5" }}
-            >
+            <tr className="bg-custom-theme border-bottom">
               <th style={{ width: "100px" }} className="text-center py-3">
                 Ordine
               </th>
@@ -73,7 +65,7 @@ export const CategoriesTable: React.FC<CategoriesTableProps> = ({
             ))}
             {categories.length === 0 && !isLoading && (
               <tr>
-                <td colSpan={3} className="text-center text-muted py-4">
+                <td colSpan={3} className="text-center py-4">
                   Nessuna categoria trovata.
                 </td>
               </tr>

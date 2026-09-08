@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Card, Form, Table } from "react-bootstrap";
-import type { Ingredient } from "../interfaces/Product";
+import type { Ingredient } from "../../interfaces/Product";
 import { ActionButtons } from "./ActionButtons";
 
 interface IngredientsTableProps {

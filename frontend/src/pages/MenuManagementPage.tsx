@@ -11,15 +11,15 @@ import {
   ToastContainer,
 } from "react-bootstrap";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
-import { CategoryModal } from "../components/CategoryModal";
+import { CategoryModal } from "../components/MenuManagementComp/CategoryModal";
 import { ConfirmDeleteModal } from "../components/ConfirmDeleteModal";
-import { IngredientModal } from "../components/IngredientModal";
-import { ProductModal } from "../components/ProductModal";
+import { IngredientModal } from "../components/MenuManagementComp/IngredientModal";
+import { ProductModal } from "../components/MenuManagementComp/ProductModal";
 import { SearchBar } from "../components/SearchBar";
 
-import { CategoriesTable } from "../components/CategoriesTable";
-import { IngredientsTable } from "../components/IngredientsTable";
-import { ProductsTable } from "../components/ProductsTable";
+import { CategoriesTable } from "../components/MenuManagementComp/CategoriesTable";
+import { IngredientsTable } from "../components/MenuManagementComp/IngredientsTable";
+import { ProductsTable } from "../components/MenuManagementComp/ProductsTable";
 
 import type {
   Category,
