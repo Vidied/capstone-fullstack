@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Alert, Container, Spinner } from "react-bootstrap";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
-import { CategoryFilter } from "../components/CategoryFilter";
-import { ProductCard } from "../components/ProductCard";
-import { SearchBar } from "../components/SearchBar";
+import { CategoryFilter } from "../components/MenuComp/CategoryFilter";
+import { ProductCard } from "../components/MenuComp/ProductCard";
+import { SearchBar } from "../components/CommonComp/SearchBar";
 import { fetchCategoriesThunk } from "../features/slices/categorySlice";
 import { fetchProductsThunk } from "../features/slices/productSlice";
 

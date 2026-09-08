@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Col, Modal } from "react-bootstrap";
-import type { Product } from "../interfaces/Product";
+import type { Product } from "../../interfaces/Product";
 
 interface ProductCardProps {
   product: Product;

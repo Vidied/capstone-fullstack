@@ -9,8 +9,8 @@ import {
   InputGroup,
   Form,
 } from "react-bootstrap";
-import type { CartItem } from "../interfaces/Order";
-import type { Product } from "../interfaces/Product";
+import type { CartItem } from "../../interfaces/Order";
+import type { Product } from "../../interfaces/Product";
 
 interface ProductGridProps {
   products: Product[];

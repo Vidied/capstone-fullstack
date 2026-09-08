@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { Button, Container, Nav, Navbar } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import type { AppDispatch, RootState } from "../app/store";
-import { logout } from "../features/auth/authSlice";
+import type { AppDispatch, RootState } from "../../app/store";
+import { logout } from "../../features/auth/authSlice";
 import { Footer } from "./Footer";
-import helmetLogo from "../assets/png-transparent-medieval-greek-warrior-helmet-thumbnail.svg";
+import helmetLogo from "../../assets/png-transparent-medieval-greek-warrior-helmet-thumbnail.svg";
 
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -32,41 +32,17 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
         expand="lg"
         expanded={expanded}
         onToggle={setExpanded}
-        className="px-3 border-bottom border-dark-subtle"
-        style={{ backgroundColor: "#f7f4ee" }}
+        className="px-3 border-bottom border-dark-subtle navbar-custom"
       >
         <Container fluid>
           <Navbar.Brand
             as={Link}
             to="/menu"
             onClick={() => setExpanded(false)}
-            className="d-flex align-items-center gap-2"
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              letterSpacing: "0.5px",
-            }}
+            className="d-flex align-items-center gap-2 navbar-brand-custom"
           >
-            <img
-              src={helmetLogo}
-              alt="Elmo Pizzeria"
-              style={{
-                width: "48px",
-                height: "48px",
-                objectFit: "contain",
-                filter:
-                  "brightness(0) saturate(100%) invert(22%) sepia(94%) saturate(7470%) hue-rotate(356deg) brightness(102%) contrast(106%)",
-              }}
-            />
-            <span
-              style={{
-                color: "#000000",
-                fontSize: "1.8rem",
-                fontWeight: 800,
-                lineHeight: "1.2",
-              }}
-            >
-              Pizzeria La Storia
-            </span>
+            <img src={helmetLogo} alt="Elmo Pizzeria" className="navbar-logo" />
+            <span className="navbar-title">Pizzeria La Storia</span>
           </Navbar.Brand>
 
           <Navbar.Toggle

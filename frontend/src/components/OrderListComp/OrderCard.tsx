@@ -5,9 +5,9 @@ import {
   getNextStatusLabel,
   type Order,
   type OrderStatus,
-} from "../interfaces/Order";
-import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
-import { OrderListItem } from "./OrderListItem";
+} from "../../interfaces/Order";
+import { ConfirmDeleteModal } from "../CommonComp/ConfirmDeleteModal";
+import { OrderListItem } from "../OrderListItem";
 
 interface OrderCardProps {
   order: Order;

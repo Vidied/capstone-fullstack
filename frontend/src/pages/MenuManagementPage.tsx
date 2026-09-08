@@ -12,10 +12,10 @@ import {
 } from "react-bootstrap";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { CategoryModal } from "../components/MenuManagementComp/CategoryModal";
-import { ConfirmDeleteModal } from "../components/ConfirmDeleteModal";
+import { ConfirmDeleteModal } from "../components/CommonComp/ConfirmDeleteModal";
 import { IngredientModal } from "../components/MenuManagementComp/IngredientModal";
 import { ProductModal } from "../components/MenuManagementComp/ProductModal";
-import { SearchBar } from "../components/SearchBar";
+import { SearchBar } from "../components/CommonComp/SearchBar";
 
 import { CategoriesTable } from "../components/MenuManagementComp/CategoriesTable";
 import { IngredientsTable } from "../components/MenuManagementComp/IngredientsTable";

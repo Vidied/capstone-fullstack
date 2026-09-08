@@ -21,6 +21,30 @@
   color: #2b2b2b;
 }
 
+.navbar-custom {
+  background-color: #f7f4ee;
+}
+
+.navbar-brand-custom {
+  font-family: "Playfair Display", serif;
+  letter-spacing: 0.5px;
+}
+
+.navbar-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  filter: brightness(0) saturate(100%) invert(22%) sepia(94%) saturate(7470%)
+    hue-rotate(356deg) brightness(102%) contrast(106%);
+}
+
+.navbar-title {
+  color: #000000;
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
 .modal-header-custom {
   background-color: #faf8f5;
   border-bottom: 1px solid #dee2e6;

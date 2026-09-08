@@ -3,10 +3,10 @@ import { Alert, Card, Col, Container, Form, Row } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { useDebounce } from "../app/hooks";
 import type { AppDispatch, RootState } from "../app/store";
-import { CategorySelect } from "../components/CategorySelect";
-import { OrderSummary } from "../components/OrderSummary";
-import { ProductGrid } from "../components/ProductGrid";
-import { SearchBar } from "../components/SearchBar";
+import { CategorySelect } from "../components/CreateOrderComp/CategorySelect";
+import { OrderSummary } from "../components/CreateOrderComp/OrderSummary";
+import { ProductGrid } from "../components/CreateOrderComp/ProductGrid";
+import { SearchBar } from "../components/CommonComp/SearchBar";
 import {
   appendItemsThunk,
   clearOrderMessages,

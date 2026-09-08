@@ -1,6 +1,6 @@
 import React from "react";
 import { Col, Form, Row } from "react-bootstrap";
-import { ALL_ORDER_STATUSES } from "../interfaces/Order";
+import { ALL_ORDER_STATUSES } from "../../interfaces/Order";
 
 interface OrderFilterHeaderProps {
   selectedStatus: string;

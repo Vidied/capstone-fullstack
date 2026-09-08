@@ -1,13 +1,13 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import "./App.css";
-import { AppLayout } from "./components/AppLayout";
+import { AppLayout } from "./components/CommonComp/AppLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { CreateOrderPage } from "./pages/CreateOrderPage";
 import { LoginPage } from "./pages/LoginPage";
 import { MenuManagementPage } from "./pages/MenuManagementPage";
 import { MenuPage } from "./pages/MenuPage";
 import { OrdersListPage } from "./pages/OrderListPage";
-import { ScrollToTopButton } from "./components/ScrollToTopButton";
+import { ScrollToTopButton } from "./components/CommonComp/ScrollToTopButton";
 
 function App() {
   return (

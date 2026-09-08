@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { Nav } from "react-bootstrap";
-import type { Category } from "../interfaces/Product";
+import type { Category } from "../../interfaces/Product";
 
 interface CategoryFilterProps {
   categories: Category[];

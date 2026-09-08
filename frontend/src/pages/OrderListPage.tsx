@@ -9,10 +9,10 @@ import {
   Spinner,
 } from "react-bootstrap";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
-import { AttiviColumn } from "../components/AttiviColumn";
-import { ConfirmDeleteModal } from "../components/ConfirmDeleteModal";
-import { OrderCard } from "../components/OrderCard";
-import { OrderFilterHeader } from "../components/OrderFilterHeader";
+import { AttiviColumn } from "../components/OrderListComp/AttiviColumn";
+import { ConfirmDeleteModal } from "../components/CommonComp/ConfirmDeleteModal";
+import { OrderCard } from "../components/OrderListComp/OrderCard";
+import { OrderFilterHeader } from "../components/OrderListComp/OrderFilterHeader";
 import {
   clearOrderMessages,
   deleteCompletedOrdersThunk,
