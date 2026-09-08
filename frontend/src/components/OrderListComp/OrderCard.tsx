@@ -7,7 +7,7 @@ import {
   type OrderStatus,
 } from "../../interfaces/Order";
 import { ConfirmDeleteModal } from "../CommonComp/ConfirmDeleteModal";
-import { OrderListItem } from "../OrderListItem";
+import { OrderListItem } from "./OrderListItem";
 
 interface OrderCardProps {
   order: Order;

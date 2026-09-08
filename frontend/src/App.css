@@ -153,3 +153,17 @@
 .custom-category-pills .nav-link:hover:not(.active) {
   color: #8b2626;
 }
+
+.toggle-btn-inactive {
+  background-color: #f7f4ee !important;
+  color: #555 !important;
+}
+
+.toggle-btn-active {
+  background-color: #1a1a1a !important;
+  color: #f7f4ee !important;
+}
+
+.custom-black-color {
+  color: #1a1a1a;
+}

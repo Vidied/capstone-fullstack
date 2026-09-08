@@ -1,7 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import "./App.css";
 import { AppLayout } from "./components/CommonComp/AppLayout";
-import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ProtectedRoute } from "./components/CommonComp/ProtectedRoute";
 import { CreateOrderPage } from "./pages/CreateOrderPage";
 import { LoginPage } from "./pages/LoginPage";
 import { MenuManagementPage } from "./pages/MenuManagementPage";

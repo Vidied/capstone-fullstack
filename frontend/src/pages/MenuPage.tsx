@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { Alert, Container, Spinner } from "react-bootstrap";
+import {
+  Alert,
+  Button,
+  ButtonGroup,
+  Container,
+  Spinner,
+} from "react-bootstrap";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { CategoryFilter } from "../components/MenuComp/CategoryFilter";
 import { ProductCard } from "../components/MenuComp/ProductCard";
@@ -14,7 +20,7 @@ export const MenuPage = () => {
     null,
   );
   const [searchTerm, setSearchTerm] = useState("");
-
+  const [isTakeaway, setIsTakeaway] = useState<boolean>(false);
   const {
     categories,
     loading: loadingCat,
@@ -69,12 +75,29 @@ export const MenuPage = () => {
   return (
     <div className="menu-page-bg min-vh-100 py-4 position-relative">
       <Container>
-        <div className="mb-3">
-          <SearchBar
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            placeholder="Cerca piatto o ingrediente..."
-          />
+        <div className="d-flex flex-column-reverse flex-md-row justify-content-between align-items-center gap-3 mb-3">
+          <div className="w-100">
+            <SearchBar
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              placeholder="Cerca piatto o ingrediente..."
+            />
+          </div>
+
+          <ButtonGroup className="shadow-sm rounded-pill overflow-hidden border border-dark-subtle flex-shrink-0">
+            <Button
+              className={`px-3 py-2 fw-semibold border-0 fs-7 ${!isTakeaway ? "toggle-btn-active" : "toggle-btn-inactive"}`}
+              onClick={() => setIsTakeaway(false)}
+            >
+              Al Tavolo
+            </Button>
+            <Button
+              className={`px-3 py-2 fw-semibold border-0 fs-7 ${isTakeaway ? "toggle-btn-active" : "toggle-btn-inactive"}`}
+              onClick={() => setIsTakeaway(true)}
+            >
+              Asporto
+            </Button>
+          </ButtonGroup>
         </div>
 
         <div className="mb-4 pb-2 border-bottom border-dark-subtle">
@@ -84,15 +107,12 @@ export const MenuPage = () => {
             onSelectCategory={(id) => setSelectedCategoryId(id)}
           />
         </div>
-
         {isLoading && (
           <div className="text-center my-5 py-5">
             <Spinner animation="border" variant="dark" />
           </div>
         )}
-
         {generalError && <Alert variant="danger">{generalError}</Alert>}
-
         {!isLoading && !generalError && (
           <div>
             {filteredProducts.length === 0 ? (
@@ -101,7 +121,11 @@ export const MenuPage = () => {
               </Alert>
             ) : (
               filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  isTakeaway={isTakeaway}
+                />
               ))
             )}
           </div>

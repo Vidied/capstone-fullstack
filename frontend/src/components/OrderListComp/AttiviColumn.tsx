@@ -1,6 +1,6 @@
 import React from "react";
 import { Col } from "react-bootstrap";
-import type { Order, OrderStatus } from "../interfaces/Order";
+import type { Order, OrderStatus } from "../../interfaces/Order";
 import { OrderCard } from "./OrderCard";
 
 interface AttiviColumnProps {

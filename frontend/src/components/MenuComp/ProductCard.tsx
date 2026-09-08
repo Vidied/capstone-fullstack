@@ -4,9 +4,10 @@ import type { Product } from "../../interfaces/Product";
 
 interface ProductCardProps {
   product: Product;
+  isTakeaway: boolean;
 }
 
-export const ProductCard = ({ product }: ProductCardProps) => {
+export const ProductCard = ({ product, isTakeaway }: ProductCardProps) => {
   const [showModal, setShowModal] = useState(false);
 
   if (product.isAvailable === false) {
@@ -22,6 +23,9 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 
   const handleOpenModal = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false);
+  const activePrice = isTakeaway
+    ? (product.takeawayPrice ?? product.price)
+    : product.price;
 
   return (
     <>
@@ -32,19 +36,18 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           onClick={handleOpenModal}
         >
           <div className="d-flex justify-content-between align-items-baseline mb-1">
-            <h5
-              className="product-title h5 mb-0"
-              style={{ fontWeight: 800, color: "#1a1a1a", fontSize: "1.15rem" }}
-            >
+            <h5 className="product-title h5 mb-0 fs-4 custom-black-color fw-bold text-start">
               {product.name}
             </h5>
-            <span className="product-price fs-5 ms-3">
-              € {product.price.toFixed(2)}
-            </span>
+            <div>
+              <span className="product-price fs-5 ms-3 text-nowrap">
+                € {activePrice.toFixed(2)}
+              </span>
+            </div>
           </div>
 
           {hasDescription && (
-            <p className="small text-muted mb-1 fst-italic">
+            <p className="fw-semibold text-muted mb-1 fst-italic text-start">
               {product.description}
             </p>
           )}
@@ -79,18 +82,23 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       >
         <div style={{ backgroundColor: "#fcfaf7", borderRadius: "8px" }}>
           <Modal.Header closeButton className="border-0 pb-0">
-            <Modal.Title
-              className="product-title h3"
-              style={{ fontWeight: 800, color: "#1a1a1a" }}
-            >
+            <Modal.Title className="product-title h3 fs-3 fw-bold custom-black-color">
               {product.name}
             </Modal.Title>
           </Modal.Header>
           <Modal.Body className="pt-2 pb-4">
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <span className="text-muted small uppercase">Prezzo</span>
+              <span className="text-muted small uppercase">
+                Prezzo a tavola
+              </span>
               <span className="product-price fs-4">
                 € {product.price.toFixed(2)}
+              </span>
+            </div>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <span className="text-muted small uppercase">Prezzo asporto</span>
+              <span className="product-price fs-4">
+                € {product.takeawayPrice?.toFixed(2)}
               </span>
             </div>
 

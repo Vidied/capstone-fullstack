@@ -1,8 +1,8 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { Navigate, Outlet } from "react-router-dom";
-import type { RootState } from "../app/store";
-import type { Role } from "../interfaces/User";
+import type { RootState } from "../../app/store";
+import type { Role } from "../../interfaces/User";
 
 interface ProtectedRouteProps {
   allowedRoles?: Role[];

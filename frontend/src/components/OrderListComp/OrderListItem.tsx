@@ -1,5 +1,5 @@
 import { ListGroup } from "react-bootstrap";
-import type { OrderItem } from "../interfaces/Order";
+import type { OrderItem } from "../../interfaces/Order";
 
 interface ItemProps {
   item: OrderItem;
