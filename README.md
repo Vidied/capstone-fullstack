@@ -45,3 +45,17 @@ Prima di avviare il progetto, assicurati di avere installato sul tuo sistema:
    ```bash
    mvn spring-boot:run
    ```
+
+### 2. Configurazione e Avvio del Frontend
+
+1. Spostati nella cartella `frontend/`.
+2. Installa le dipendenze Node.js eseguendo da terminale:
+   ```bash
+   npm install
+   ```
+3. _(Opzionale)_ Se necessario, verifica che l'URL di base per le chiamate HTTP al backend corrisponda all'indirizzo in cui è in esecuzione Spring Boot (di solito `http://localhost:8080`).
+4. Avvia il server di sviluppo frontend eseguendo:
+   ```bash
+   npm run dev
+   ```
+   L'applicazione web sarà accessibile all'indirizzo fornito da Vite nel terminale (solitamente `http://localhost:5173`).
