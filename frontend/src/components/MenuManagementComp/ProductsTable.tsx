@@ -77,8 +77,20 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
                     </Badge>
                   </td>
 
-                  <td className="text-success fw-bold text-nowrap">
-                    € {product.price ? product.price.toFixed(2) : "0.00"}
+                  <td className="text-success fw-bold">
+                    <div className="d-flex flex-column flex-sm-row align-items-sm-center gap-sm-1">
+                      <span>
+                        € {product.price ? product.price.toFixed(2) : "0.00"}
+                      </span>
+                      {product.takeawayPrice && (
+                        <>
+                          <span className="text-muted fw-normal">/</span>
+                          <span className="text-success fw-bold">
+                            € {product.takeawayPrice.toFixed(2)}
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </td>
 
                   <td className="d-none d-lg-table-cell">

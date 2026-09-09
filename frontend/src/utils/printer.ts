@@ -31,9 +31,6 @@ export interface CancelTicket {
   timestamp?: string;
 }
 
-/**
- * Escapa i caratteri HTML per evitare stringhe malformate o XSS iniettato nei ticket
- */
 const escapeHtml = (str: string): string =>
   str
     .replace(/&/g, "&amp;")
@@ -128,10 +125,7 @@ export const splitItemsByDestination = (
   }));
 };
 
-/**
- * Stampa i comandi di reparto
- */
-export const printTickets = (tickets: PrintedTicket[]) => {
+export const printTickets = (tickets: PrintedTicket[]): void => {
   tickets.forEach((ticket, index) => {
     setTimeout(() => {
       const itemsHtml = ticket.items
@@ -202,10 +196,7 @@ export const printTickets = (tickets: PrintedTicket[]) => {
   });
 };
 
-/**
- * Stampa il biglietto di cancellazione dell'ordine
- */
-export const printCancellationTicket = (ticket: CancelTicket) => {
+export const printCancellationTicket = (ticket: CancelTicket): void => {
   const timeString =
     ticket.timestamp ||
     new Intl.DateTimeFormat("it-IT", {
@@ -256,9 +247,6 @@ export const printCancellationTicket = (ticket: CancelTicket) => {
   printHtmlViaIframe(html);
 };
 
-/**
- * Stampa la ricevuta/scontrino completo dell'ordine
- */
 export const printFullOrderTicket = (order: Order): void => {
   const isTable =
     order.orderType === "TAVOLO" ||
@@ -279,6 +267,10 @@ export const printFullOrderTicket = (order: Order): void => {
         hour: "2-digit",
         minute: "2-digit",
       });
+
+  const coverCount = isTable ? (order.coverCount ?? 0) : 0;
+  const coverUnitPrice = order.coverPrice ?? 2.0;
+  const totalCoverPrice = coverCount * coverUnitPrice;
 
   const html = `
     <!DOCTYPE html>
@@ -345,6 +337,12 @@ export const printFullOrderTicket = (order: Order): void => {
           justify-content: space-between;
           margin-top: 6px;
         }
+        .subtotal-section {
+          font-size: 13px;
+          display: flex;
+          justify-content: space-between;
+          margin-top: 4px;
+        }
         .footer {
           margin-top: 12px;
           font-size: 11px;
@@ -382,7 +380,15 @@ export const printFullOrderTicket = (order: Order): void => {
           ? order.items
               .map((item) => {
                 const qty = item.quantity ?? 1;
-                const unitPrice = item.unitPrice ?? 0;
+                const isTakeaway = order.orderType === "ASPORTO";
+                const unitPrice =
+                  isTakeaway &&
+                  item.takeawayUnitPrice !== null &&
+                  item.takeawayUnitPrice !== undefined &&
+                  item.takeawayUnitPrice > 0
+                    ? item.takeawayUnitPrice
+                    : (item.unitPrice ?? 0);
+
                 const totalPrice = (unitPrice * qty).toFixed(2);
                 const name = item.productName || "Prodotto";
 
@@ -403,12 +409,23 @@ export const printFullOrderTicket = (order: Order): void => {
           : "<div>Nessun articolo presente</div>"
       }
 
-      <div class="double-divider"></div>
+      <div class="divider"></div>
+
+      ${
+        isTable && coverCount > 0
+          ? `
+            <div class="subtotal-section">
+              <span>Coperti (${coverCount} x € ${coverUnitPrice.toFixed(2)})</span>
+              <span>€ ${totalCoverPrice.toFixed(2)}</span>
+            </div>
+          `
+          : ""
+      }
 
       ${
         order.notes
           ? `
-            <div style="margin-bottom: 6px;">
+            <div style="margin-top: 6px; margin-bottom: 6px;">
               <strong>NOTE:</strong> ${escapeHtml(order.notes)}
             </div>
             <div class="divider"></div>

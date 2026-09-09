@@ -43,6 +43,7 @@ export interface OrderItem {
   productName: string | null;
   quantity: number;
   unitPrice: number;
+  takeawayUnitPrice: number | null;
   notes?: string;
   destinationArea?: DestinationArea | null;
 }
@@ -51,6 +52,7 @@ export interface Order {
   id: number;
   tableNumber: number | null;
   coverCount: number | null;
+  coverPrice: number | null;
   orderType: OrderType;
   createdAt: string;
   orderStatus: OrderStatus;

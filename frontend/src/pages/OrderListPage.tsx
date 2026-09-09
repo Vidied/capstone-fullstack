@@ -177,11 +177,7 @@ export const OrdersListPage: React.FC = () => {
   }, [selectedStatus, autoPrintOnComplete, completedCount]);
 
   return (
-    <Container
-      fluid
-      className="py-4 min-vh-100"
-      style={{ backgroundColor: "#f7f4ee", color: "#2b2b2b" }}
-    >
+    <Container fluid className="py-4 min-vh-100 menu-page-bg">
       <OrderFilterHeader
         selectedStatus={selectedStatus}
         onStatusChange={setSelectedStatus}

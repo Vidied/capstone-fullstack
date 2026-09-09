@@ -29,14 +29,8 @@ export const AttiviColumn: React.FC<AttiviColumnProps> = ({
 }) => {
   return (
     <Col md={4}>
-      <div
-        className="p-3 rounded bg-white border shadow-sm min-vh-100"
-        style={{ borderColor: "#ced4da" }}
-      >
-        <h5
-          className="text-center fw-bold mb-3 pb-2 border-bottom"
-          style={{ color: "#2b2b2b" }}
-        >
+      <div className="p-3 rounded bg-white shadow-sm min-vh-100 card-border-custom">
+        <h5 className="text-center fw-bold mb-3 pb-2 border-bottom custom-black-color">
           {title}
         </h5>
         {orders.length === 0 ? (

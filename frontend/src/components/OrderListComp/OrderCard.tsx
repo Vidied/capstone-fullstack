@@ -35,8 +35,25 @@ export const OrderCard: React.FC<OrderCardProps> = ({
     order.orderType === "TAVOLO" ||
     (order.tableNumber !== null && order.tableNumber !== undefined);
 
+  const isTakeaway = order.orderType === "ASPORTO";
+
   const isServed = order.orderStatus === "SERVED";
   const isCompleted = order.orderStatus === "COMPLETED";
+
+  const coverCount = isTable ? (order.coverCount ?? 0) : 0;
+  const coverUnitPrice = order.coverPrice ?? 2.0;
+  const totalCoverPrice = coverCount * coverUnitPrice;
+
+  const itemsTotal = order.items
+    ? order.items.reduce((sum, item) => {
+        const unitPrice = isTakeaway
+          ? (item.takeawayUnitPrice ?? item.unitPrice ?? 0)
+          : (item.unitPrice ?? 0);
+        return sum + unitPrice * item.quantity;
+      }, 0)
+    : (order.totalAmount ?? 0);
+
+  const calculatedTotal = itemsTotal + totalCoverPrice;
 
   const handleConfirmCancel = () => {
     if (onCancelOrder) {
@@ -54,12 +71,9 @@ export const OrderCard: React.FC<OrderCardProps> = ({
 
   return (
     <>
-      <Card
-        className="bg-white text-dark shadow-sm h-100 mb-3"
-        style={{ border: "1px solid #ced4da" }}
-      >
+      <Card className="bg-custom-theme shadow-sm h-100 mb-3 card-border-custom">
         <Card.Header className="bg-white border-bottom d-flex justify-content-between align-items-center py-3">
-          <span className="fw-bold fs-5" style={{ color: "#2b2b2b" }}>
+          <span className="fw-bold fs-5 custom-black-color">
             {isTable ? `Tavolo ${order.tableNumber}` : "Asporto"}
           </span>
           <Badge bg={getBadgeVariant(order.orderStatus)} text="dark">
@@ -86,9 +100,16 @@ export const OrderCard: React.FC<OrderCardProps> = ({
                 )}
             </div>
 
-            <ListGroup variant="flush" className="mb-3 rounded border">
+            <ListGroup
+              variant="flush"
+              className="mb-3 rounded card-border-custom overflow-hidden"
+            >
               {order.items?.map((item, index) => (
-                <OrderListItem key={item.id ?? index} item={item} />
+                <OrderListItem
+                  key={item.id ?? index}
+                  item={item}
+                  isTakeaway={isTakeaway}
+                />
               ))}
             </ListGroup>
 
@@ -100,9 +121,8 @@ export const OrderCard: React.FC<OrderCardProps> = ({
           </div>
 
           <div>
-            <div className="fw-bold text-success fs-5 mb-2">
-              Totale: €{" "}
-              {order.totalAmount ? order.totalAmount.toFixed(2) : "0.00"}
+            <div className="fw-bold product-price-calculated fs-5 mb-2">
+              Totale: € {calculatedTotal.toFixed(2)}
             </div>
 
             {isCompleted ? (
@@ -111,7 +131,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({
                   <Button
                     size="sm"
                     variant="outline-secondary"
-                    className="fw-bold"
+                    className="fw-bold card-border-custom"
                     onClick={() => onPrintTicket(order)}
                   >
                     Stampa
@@ -134,15 +154,13 @@ export const OrderCard: React.FC<OrderCardProps> = ({
                   <Button
                     size="sm"
                     variant="outline-dark"
-                    className="fw-bold"
-                    style={{ border: "1px solid #adb5bd" }}
+                    className="fw-bold custom-input-border"
                     onClick={() => onPrintTicket(order)}
                   >
                     Stampa Scontrino
                   </Button>
                 )}
 
-                {/* Pulsante di avanzamento stato uniforme con variante success */}
                 <Button
                   size="sm"
                   variant="success"
@@ -172,8 +190,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({
         show={showCancelModal}
         onHide={() => setShowCancelModal(false)}
         centered
-        contentClassName="bg-white text-dark shadow-sm"
-        style={{ border: "1px solid #ced4da" }}
+        contentClassName="bg-white text-dark shadow-sm card-border-custom"
       >
         <Modal.Header closeButton className="border-bottom">
           <Modal.Title className="fs-5 text-danger fw-bold">
@@ -190,6 +207,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({
         <Modal.Footer className="border-top">
           <Button
             variant="outline-secondary"
+            className="card-border-custom"
             onClick={() => setShowCancelModal(false)}
           >
             Chiudi
