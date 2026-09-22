@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "order_items")
@@ -36,13 +38,20 @@ public class OrderItem {
     @Column(nullable = false)
     private BigDecimal unitPrice;
 
+    private BigDecimal takeawayUnitPrice;
+
     private String notes;
 
-    public OrderItem(Order order, Product product, Integer quantity, BigDecimal unitPrice, String notes) {
+    @ElementCollection
+    @CollectionTable(name = "order_item_extras", joinColumns = @JoinColumn(name = "order_item_id"))
+    private List<OrderItemExtra> extras = new ArrayList<>();
+
+    public OrderItem(Order order, Product product, Integer quantity, BigDecimal unitPrice, BigDecimal takeawayUnitPrice, String notes) {
         this.order = order;
         this.product = product;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
+        this.takeawayUnitPrice = takeawayUnitPrice;
         this.notes = notes;
     }
 }

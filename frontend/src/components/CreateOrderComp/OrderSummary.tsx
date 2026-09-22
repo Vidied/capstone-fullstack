@@ -1,9 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, Button, Form, InputGroup, ListGroup } from "react-bootstrap";
-import type { CartItem, OrderType } from "../../interfaces/Order";
+import type {
+  CartItem,
+  CartItemExtra,
+  OrderType,
+} from "../../interfaces/Order";
+import type { Ingredient } from "../../interfaces/Product";
+import { ExtrasPickerModal } from "./ExtrasPickerModal";
+import { RemoveIngredientsModal } from "./RemoveIngredientsModal";
 
 interface OrderSummaryProps {
   cart: CartItem[];
+  ingredients: Ingredient[];
   tableNumber: string;
   coverCount: string;
   orderType: OrderType;
@@ -14,6 +22,8 @@ interface OrderSummaryProps {
   onGeneralNotesChange: (notes: string) => void;
   onUpdateQuantity: (index: number, quantity: number) => void;
   onUpdateNotes: (index: number, notes: string) => void;
+  onUpdateExtras: (index: number, extras: CartItemExtra[]) => void;
+  onUpdateRemovedIngredients: (index: number, names: string[]) => void;
   onRemoveItem: (index: number) => void;
   onSubmitOrder: () => void;
   isSubmitting: boolean;
@@ -22,6 +32,7 @@ interface OrderSummaryProps {
 
 export const OrderSummary: React.FC<OrderSummaryProps> = ({
   cart,
+  ingredients,
   tableNumber,
   coverCount,
   orderType,
@@ -32,16 +43,22 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
   onGeneralNotesChange,
   onUpdateQuantity,
   onUpdateNotes,
+  onUpdateExtras,
+  onUpdateRemovedIngredients,
   onRemoveItem,
   onSubmitOrder,
   isSubmitting,
   isTakeaway,
 }) => {
+  const [extrasModalIndex, setExtrasModalIndex] = useState<number | null>(null);
+  const [removeModalIndex, setRemoveModalIndex] = useState<number | null>(null);
+
   const totalAmount = cart.reduce((sum, item) => {
     const price = isTakeaway
       ? (item.product.takeawayPrice ?? item.product.price)
       : item.product.price;
-    return sum + price * item.quantity;
+    const extrasPrice = item.extras?.reduce((s, e) => s + e.price, 0) ?? 0;
+    return sum + (price + extrasPrice) * item.quantity;
   }, 0);
 
   const isTableProvided = tableNumber.trim() !== "";
@@ -52,6 +69,21 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
     (orderType === "TAVOLO" && isTableProvided && isCoverProvided);
 
   const isFormValid = cart.length > 0 && isTableValid;
+
+  const handleRemoveExtra = (itemIndex: number, ingredientId: number) => {
+    const item = cart[itemIndex];
+    const updated = (item.extras ?? []).filter(
+      (e) => e.ingredientId !== ingredientId,
+    );
+    onUpdateExtras(itemIndex, updated);
+  };
+
+  const getProductIngredientNames = (item: CartItem): string[] => {
+    const raw = item.product.ingredientNames || item.product.ingredients || [];
+    return raw
+      .map((ing) => (typeof ing === "string" ? ing : ing?.name))
+      .filter((name): name is string => Boolean(name));
+  };
 
   return (
     <Card
@@ -157,10 +189,14 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
           </p>
         ) : (
           <ListGroup variant="flush" className="mb-3">
-            {cart.map(({ product, quantity, notes }, index) => {
-              const activeItemPrice = isTakeaway
+            {cart.map((cartItem, index) => {
+              const { product, quantity, notes, extras, removedIngredients } =
+                cartItem;
+              const baseItemPrice = isTakeaway
                 ? (product.takeawayPrice ?? product.price)
                 : product.price;
+              const extrasPrice = extras?.reduce((s, e) => s + e.price, 0) ?? 0;
+              const activeItemPrice = baseItemPrice + extrasPrice;
 
               return (
                 <ListGroup.Item
@@ -188,7 +224,7 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
                       <Form.Control
                         readOnly
                         value={quantity}
-                        className="bg-custom-theme text-dark text-center px-1 card-border-custom"
+                        className="bg-custom-theme text-center px-1 card-border-custom"
                       />
                       <Button
                         variant="outline-dark"
@@ -208,14 +244,100 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
                     </Button>
                   </div>
 
-                  <Form.Control
-                    size="sm"
-                    type="text"
-                    placeholder="Note piatto"
-                    value={notes || ""}
-                    onChange={(e) => onUpdateNotes(index, e.target.value)}
-                    className="bg-custom-theme card-border-custom text-dark"
-                  />
+                  {extras && extras.length > 0 && (
+                    <div className="mb-2">
+                      {extras.map((extra) => {
+                        const isPositive = extra.price >= 0;
+                        return (
+                          <div
+                            key={extra.ingredientId}
+                            className={`d-flex justify-content-between align-items-center small ${
+                              isPositive ? "text-success" : "text-danger"
+                            }`}
+                          >
+                            <span>
+                              {isPositive ? "+ " : "- "}
+                              <span className="fw-bold">
+                                {extra.ingredientName}
+                              </span>{" "}
+                              (€ {Math.abs(extra.price).toFixed(2)})
+                            </span>
+                            <Button
+                              variant="link"
+                              className="p-0 text-decoration-none text-muted"
+                              style={{ fontSize: "0.75rem" }}
+                              onClick={() =>
+                                handleRemoveExtra(index, extra.ingredientId)
+                              }
+                            >
+                              rimuovi
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {removedIngredients && removedIngredients.length > 0 && (
+                    <div className="mb-2">
+                      {removedIngredients.map((name) => (
+                        <div
+                          key={name}
+                          className="d-flex justify-content-between align-items-center small text-muted"
+                        >
+                          <span>
+                            Senza{" "}
+                            <span className="fw-bold text-decoration-line-through">
+                              {name}
+                            </span>
+                          </span>
+                          <Button
+                            variant="link"
+                            className="p-0 text-decoration-none text-muted"
+                            style={{ fontSize: "0.75rem" }}
+                            onClick={() =>
+                              onUpdateRemovedIngredients(
+                                index,
+                                removedIngredients.filter((n) => n !== name),
+                              )
+                            }
+                          >
+                            rimuovi
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="d-flex gap-2 mb-2">
+                    <Form.Control
+                      size="sm"
+                      type="text"
+                      placeholder="Note piatto"
+                      value={notes || ""}
+                      onChange={(e) => onUpdateNotes(index, e.target.value)}
+                      className="bg-custom-theme card-border-custom text-dark"
+                    />
+                  </div>
+
+                  <div className="d-flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline-success"
+                      className="text-nowrap flex-grow-1"
+                      onClick={() => setExtrasModalIndex(index)}
+                    >
+                      + Extra
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline-danger"
+                      className="text-nowrap flex-grow-1"
+                      onClick={() => setRemoveModalIndex(index)}
+                    >
+                      Togli ingredienti
+                    </Button>
+                  </div>
                 </ListGroup.Item>
               );
             })}
@@ -239,6 +361,30 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
           {isSubmitting ? "Invio in corso..." : "Invia Comanda"}
         </Button>
       </Card.Body>
+
+      {extrasModalIndex !== null && (
+        <ExtrasPickerModal
+          show={extrasModalIndex !== null}
+          onHide={() => setExtrasModalIndex(null)}
+          ingredients={ingredients}
+          selectedExtras={cart[extrasModalIndex]?.extras ?? []}
+          onConfirm={(extras) => onUpdateExtras(extrasModalIndex, extras)}
+        />
+      )}
+
+      {removeModalIndex !== null && (
+        <RemoveIngredientsModal
+          show={removeModalIndex !== null}
+          onHide={() => setRemoveModalIndex(null)}
+          availableIngredientNames={getProductIngredientNames(
+            cart[removeModalIndex],
+          )}
+          selectedNames={cart[removeModalIndex]?.removedIngredients ?? []}
+          onConfirm={(names) =>
+            onUpdateRemovedIngredients(removeModalIndex, names)
+          }
+        />
+      )}
     </Card>
   );
 };

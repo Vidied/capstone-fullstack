@@ -15,16 +15,18 @@ import { OrderCard } from "../components/OrderListComp/OrderCard";
 import { OrderFilterHeader } from "../components/OrderListComp/OrderFilterHeader";
 import {
   clearOrderMessages,
+  deleteCancelledOrdersThunk,
   deleteCompletedOrdersThunk,
   deleteOrdersThunk,
   fetchOrdersThunk,
+  printOrderThunk,
+  printReceiptThunk,
   updateOrderStatusThunk,
 } from "../features/slices/orderSlice";
 import type { Order, OrderStatus } from "../interfaces/Order";
-import {
-  printCancellationTicket,
-  printFullOrderTicket,
-} from "../utils/printer";
+import { printCancellationTicket } from "../utils/printer";
+
+type BulkDeleteTarget = "COMPLETED" | "CANCELLED" | null;
 
 export const OrdersListPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -33,8 +35,8 @@ export const OrdersListPage: React.FC = () => {
     (state) => state.orders,
   );
   const [selectedStatus, setSelectedStatus] = useState<string>("ATTIVI");
-  const [showBulkDeleteModal, setShowBulkDeleteModal] =
-    useState<boolean>(false);
+  const [bulkDeleteTarget, setBulkDeleteTarget] =
+    useState<BulkDeleteTarget>(null);
 
   const [autoPrintOnComplete, setAutoPrintOnComplete] = useState<boolean>(
     () => localStorage.getItem("autoPrintOnComplete") === "true",
@@ -66,7 +68,11 @@ export const OrdersListPage: React.FC = () => {
   }, [successMessage, errorMessage, dispatch]);
 
   const handlePrintFullTicket = (order: Order) => {
-    printFullOrderTicket(order);
+    dispatch(printReceiptThunk(order.id));
+  };
+
+  const handleReprintComanda = (order: Order) => {
+    dispatch(printOrderThunk(order.id));
   };
 
   const handleDeleteSingleOrder = (orderId: number) => {
@@ -110,9 +116,11 @@ export const OrdersListPage: React.FC = () => {
     tableNumber?: number | string | null,
     orderType: string = "TAVOLO",
   ) => {
-    const result = await dispatch(deleteOrdersThunk(orderId));
+    const result = await dispatch(
+      updateOrderStatusThunk({ orderId, data: { orderStatus: "CANCELLED" } }),
+    );
 
-    if (deleteOrdersThunk.fulfilled.match(result)) {
+    if (updateOrderStatusThunk.fulfilled.match(result)) {
       printCancellationTicket({
         orderId,
         tableNumber,
@@ -125,9 +133,13 @@ export const OrdersListPage: React.FC = () => {
     }
   };
 
-  const handleConfirmDeleteCompleted = () => {
-    dispatch(deleteCompletedOrdersThunk());
-    setShowBulkDeleteModal(false);
+  const handleConfirmBulkDelete = () => {
+    if (bulkDeleteTarget === "COMPLETED") {
+      dispatch(deleteCompletedOrdersThunk());
+    } else if (bulkDeleteTarget === "CANCELLED") {
+      dispatch(deleteCancelledOrdersThunk());
+    }
+    setBulkDeleteTarget(null);
   };
 
   const {
@@ -136,6 +148,7 @@ export const OrdersListPage: React.FC = () => {
     readyOrders,
     specificFilteredOrders,
     completedCount,
+    cancelledCount,
   } = useMemo(() => {
     return {
       pendingOrders: orders.filter((o) => o.orderStatus === "PENDING"),
@@ -145,6 +158,8 @@ export const OrdersListPage: React.FC = () => {
         (o) => o.orderStatus === selectedStatus,
       ),
       completedCount: orders.filter((o) => o.orderStatus === "COMPLETED")
+        .length,
+      cancelledCount: orders.filter((o) => o.orderStatus === "CANCELLED")
         .length,
     };
   }, [orders, selectedStatus]);
@@ -167,14 +182,25 @@ export const OrdersListPage: React.FC = () => {
         <Button
           variant="outline-danger"
           size="sm"
-          onClick={() => setShowBulkDeleteModal(true)}
+          onClick={() => setBulkDeleteTarget("COMPLETED")}
         >
           Pulisci Completati ({completedCount})
         </Button>
       );
     }
+    if (selectedStatus === "CANCELLED" && cancelledCount > 0) {
+      return (
+        <Button
+          variant="outline-danger"
+          size="sm"
+          onClick={() => setBulkDeleteTarget("CANCELLED")}
+        >
+          Pulisci Cancellati ({cancelledCount})
+        </Button>
+      );
+    }
     return null;
-  }, [selectedStatus, autoPrintOnComplete, completedCount]);
+  }, [selectedStatus, autoPrintOnComplete, completedCount, cancelledCount]);
 
   return (
     <Container fluid className="py-4 min-vh-100 menu-page-bg">
@@ -201,6 +227,7 @@ export const OrdersListPage: React.FC = () => {
             onNextStatus={handleNextStatus}
             onCancelOrder={handleCancelOrder}
             onPrintTicket={handlePrintFullTicket}
+            onReprintComanda={handleReprintComanda}
             onDeleteSingleOrder={handleDeleteSingleOrder}
           />
           <AttiviColumn
@@ -211,6 +238,7 @@ export const OrdersListPage: React.FC = () => {
             onNextStatus={handleNextStatus}
             onCancelOrder={handleCancelOrder}
             onPrintTicket={handlePrintFullTicket}
+            onReprintComanda={handleReprintComanda}
             onDeleteSingleOrder={handleDeleteSingleOrder}
           />
           <AttiviColumn
@@ -221,6 +249,7 @@ export const OrdersListPage: React.FC = () => {
             onNextStatus={handleNextStatus}
             onCancelOrder={handleCancelOrder}
             onPrintTicket={handlePrintFullTicket}
+            onReprintComanda={handleReprintComanda}
             onDeleteSingleOrder={handleDeleteSingleOrder}
           />
         </Row>
@@ -238,6 +267,7 @@ export const OrdersListPage: React.FC = () => {
                   onNextStatus={handleNextStatus}
                   onCancelOrder={handleCancelOrder}
                   onPrintTicket={handlePrintFullTicket}
+                  onReprintComanda={handleReprintComanda}
                   onDeleteSingleOrder={handleDeleteSingleOrder}
                 />
               </Col>
@@ -247,12 +277,20 @@ export const OrdersListPage: React.FC = () => {
       )}
 
       <ConfirmDeleteModal
-        show={showBulkDeleteModal}
+        show={bulkDeleteTarget !== null}
         title="Conferma Eliminazione di Massa"
-        message={`Sei sicuro di voler eliminare tutti gli ordini completati (${completedCount})?`}
-        confirmButtonText="Elimina Tutti i Completati"
-        onHide={() => setShowBulkDeleteModal(false)}
-        onConfirm={handleConfirmDeleteCompleted}
+        message={
+          bulkDeleteTarget === "COMPLETED"
+            ? `Sei sicuro di voler eliminare tutti gli ordini completati (${completedCount})?`
+            : `Sei sicuro di voler eliminare tutti gli ordini cancellati (${cancelledCount})?`
+        }
+        confirmButtonText={
+          bulkDeleteTarget === "COMPLETED"
+            ? "Elimina Tutti i Completati"
+            : "Elimina Tutti i Cancellati"
+        }
+        onHide={() => setBulkDeleteTarget(null)}
+        onConfirm={handleConfirmBulkDelete}
       />
     </Container>
   );
