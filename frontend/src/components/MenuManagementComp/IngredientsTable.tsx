@@ -46,6 +46,7 @@ export const IngredientsTable: React.FC<IngredientsTableProps> = ({
               style={{ backgroundColor: "#faf8f5" }}
             >
               <th className="py-3 ps-3">Nome Ingrediente</th>
+              <th className="text-center py-3">Extra (€)</th>
               <th className="text-center py-3">Stato Scorta</th>
               <th className="text-end py-3 pe-3" style={{ width: "1%" }}>
                 Azioni
@@ -59,6 +60,10 @@ export const IngredientsTable: React.FC<IngredientsTableProps> = ({
                   <span className="text-truncate-2" title={ing.name}>
                     {ing.name}
                   </span>
+                </td>
+
+                <td className="text-center">
+                  € {(ing.extraPrice ?? 1).toFixed(2)}
                 </td>
 
                 <td className="text-center">
@@ -81,7 +86,7 @@ export const IngredientsTable: React.FC<IngredientsTableProps> = ({
             ))}
             {ingredients.length === 0 && !isLoading && (
               <tr>
-                <td colSpan={3} className="text-center text-muted py-4">
+                <td colSpan={4} className="text-center text-muted py-4">
                   Nessun ingrediente trovato.
                 </td>
               </tr>

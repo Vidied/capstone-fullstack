@@ -15,6 +15,7 @@ interface AttiviColumnProps {
     orderType?: string,
   ) => void;
   onPrintTicket?: (order: Order) => void;
+  onReprintComanda?: (order: Order) => void;
   onDeleteSingleOrder?: (orderId: number) => void;
 }
 
@@ -25,6 +26,7 @@ export const AttiviColumn: React.FC<AttiviColumnProps> = ({
   onNextStatus,
   onCancelOrder,
   onPrintTicket,
+  onReprintComanda,
   onDeleteSingleOrder,
 }) => {
   return (
@@ -43,6 +45,7 @@ export const AttiviColumn: React.FC<AttiviColumnProps> = ({
               onNextStatus={onNextStatus}
               onCancelOrder={onCancelOrder}
               onPrintTicket={onPrintTicket}
+              onReprintComanda={onReprintComanda}
               onDeleteSingleOrder={onDeleteSingleOrder}
             />
           ))

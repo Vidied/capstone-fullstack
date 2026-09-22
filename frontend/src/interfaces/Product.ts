@@ -63,9 +63,11 @@ export interface Ingredient {
   id: number;
   name: string;
   isAvailable: boolean;
+  extraPrice: number;
 }
 
 export interface IngredientRequestDTO {
   name: string;
   isAvailable: boolean;
+  extraPrice?: number;
 }
