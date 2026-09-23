@@ -1,13 +1,16 @@
 # Capstone Project - Full-Stack Menu Management App
 
-Applicazione web full-stack sviluppata per la gestione completa di un menu e magazzino (ristorazione), realizzata con architettura client-server.
+Applicazione web full-stack per la gestione completa di menu, magazzino e ordini di una pizzeria/ristorante, realizzata con architettura client-server.
+
+---
 
 ## Tecnologie Utilizzate
 
 ### Backend
 
-- **Java 17+** / **Spring Boot**
-- **Spring Security** (Autenticazione JWT stateless)
+- **Java 25**
+- **Spring Boot 4.1**
+- **Spring Security** (autenticazione JWT stateless)
 - **Spring Data JPA / Hibernate**
 - **PostgreSQL**
 - **Maven**
@@ -19,29 +22,161 @@ Applicazione web full-stack sviluppata per la gestione completa di un menu e mag
 - **React-Bootstrap** / **Bootstrap**
 - **Redux Toolkit**
 - **React Router**
+- **Axios**
 
 ---
 
 ## Prerequisiti
 
-Prima di avviare il progetto, assicurati di avere installato sul tuo sistema:
+Prima di avviare il progetto, assicurati di avere installato:
 
-- Java JDK (versione 17 o superiore)
-- Node.js (versione 18 o superiore)
-- Maven
-- Un database PostgreSQL attivo
+- **Java JDK 25** (o superiore)
+- **Node.js 18** (o superiore) e **npm**
+- **Maven 3.9+** (vedi nota sul wrapper Maven più avanti)
+- **PostgreSQL** attivo in locale, con un database chiamato `capstone` già creato
 
 ---
 
-## Configurazione e Avvio
+## 1. Configurazione del Backend
 
-### 1. Configurazione del Backend
+### 1.1 Crea il database
 
-1. Spostati nella cartella `backend/`.
-2. Configura le credenziali del tuo database all'interno del file `application.properties`.
-   > **Nota sulla configurazione (Niente file `.env`? Nessuna dimenticanza!):**
-   > Si è scelto deliberatamente di non utilizzare file `.env` o configurazioni a variabili d'ambiente esterne, ma di centralizzare i parametri in `application.properties`. Questa scelta è pensata appositamente per i contesti di valutazione e code review: in questo modo chi corregge il progetto può avviare il backend _subito_, senza il rischio di inciampare in errori dovuti a file di environment mancanti, variabili di sistema non mappate o configurazioni locali errate.
-3. Avvia il server Spring Boot eseguendo da terminale:
-   ```bash
-   mvn spring-boot:run
-   ```
+Il database deve esistere **prima** di avviare il backend (l'app non lo genera da zero). Crealo con `psql` o pgAdmin:
+
+```sql
+CREATE DATABASE capstone;
+```
+
+Le tabelle verranno create/aggiornate automaticamente da Hibernate all'avvio (`ddl-auto=update`).
+
+### 1.2 Configura le credenziali
+
+Apri il file `backend/src/main/resources/application.properties` e imposta i parametri del tuo PostgreSQL (URL, `username`, `password`):
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/capstone
+spring.datasource.username=postgres
+spring.datasource.password=LA_TUA_PASSWORD
+```
+
+> **Nota sulla configurazione (Niente file `.env`? Nessuna dimenticanza!):**
+> Si è scelto deliberatamente di non utilizzare file `.env` o variabili d'ambiente esterne, ma di centralizzare i parametri in `application.properties`. Questa scelta è pensata per i contesti di valutazione e code review: chi corregge il progetto può avviare il backend _subito_, senza il rischio di inciampare in errori dovuti a file di environment mancanti, variabili di sistema non mappate o configurazioni locali errate.
+
+> **Avviso di sicurezza:** le credenziali del database (`username`, `password`) e la chiave `jwt.secret` sono attualmente **hardcoded** in `application.properties`, così come l'account amministratore creato dal seeder. Questa scelta è accettabile per un progetto didattico, ma in un contesto reale (o prima di pubblicare il repository) andrebbero **esternalizzate** (variabili d'ambiente o secret manager) e **ruotate**, per evitare di esporre credenziali sensibili nel codice sorgente.
+
+### 1.3 Avvia il server
+
+Dalla cartella `backend/`:
+
+```bash
+mvn spring-boot:run
+```
+
+Il backend sarà attivo su **http://localhost:8080**.
+
+> **Nota sul wrapper Maven:** nel repository è presente lo script `mvnw` (Unix/Linux/macOS), utilizzabile con `./mvnw spring-boot:run`. **Su Windows lo script `mvnw.cmd` non è incluso**, quindi in quel caso è necessario avere **Maven installato globalmente** e usare `mvn spring-boot:run`. In alternativa, se si ha Maven a disposizione, si può rigenerare lo script Windows con:
+>
+> ```bash
+> mvn -N wrapper:wrapper -Dtype=only-script
+> ```
+
+### 1.4 Dati di seed e account amministratore
+
+Al primo avvio l'applicazione popola automaticamente il database tramite i seeder:
+
+- i ruoli di base (`ROLE_USER`, `ROLE_ADMIN`);
+- un utente amministratore;
+- un menu dimostrativo (categorie, ingredienti, prodotti) e un ordine di esempio.
+
+Account amministratore creato automaticamente:
+
+| Campo    | Valore                 |
+| -------- | ---------------------- |
+| Email    | `admin@restaurant.com` |
+| Password | `AdminPassword123!`    |
+
+Usa queste credenziali per accedere alle funzionalità di gestione (creazione/modifica di prodotti, categorie, ingredienti e ordini).
+
+---
+
+## 2. Configurazione e Avvio del Frontend
+
+Dalla cartella `frontend/`:
+
+### 2.1 Installa le dipendenze
+
+```bash
+npm install
+```
+
+### 2.2 Verifica l'URL del backend (opzionale)
+
+L'URL di base delle chiamate HTTP al backend è definito in `frontend/src/api/axiosConfig.ts` ed è impostato di default a `http://localhost:8080`. Se il backend gira su una porta diversa, aggiornalo qui.
+
+### 2.3 Avvia il server di sviluppo
+
+```bash
+npm run dev
+```
+
+L'applicazione sarà accessibile all'indirizzo mostrato da Vite nel terminale (solitamente **http://localhost:5173**).
+
+> Le porte `5173`, `5174` e `5175` sono già abilitate nel CORS del backend, quindi non serve ulteriore configurazione.
+
+### 2.4 Build di produzione (opzionale)
+
+```bash
+npm run build
+```
+
+---
+
+## Riepilogo avvio rapido
+
+```bash
+# 1) Database
+#    Crea il DB "capstone" su PostgreSQL
+
+# 2) Backend
+cd backend
+mvn spring-boot:run        # su Windows (Maven globale)
+# ./mvnw spring-boot:run   # su Linux/macOS
+# => http://localhost:8080
+
+# 3) Frontend (in un secondo terminale)
+cd frontend
+npm install
+npm run dev
+# => http://localhost:5173
+```
+
+Login di prova come amministratore: `admin@restaurant.com` / `AdminPassword123!`
+
+---
+
+## Struttura del progetto
+
+```
+capstone-fullstack/
+├── backend/                 # Spring Boot (Java 25)
+│   └── src/main/java/davidepan/capstone/
+│       ├── controllers/     # Endpoint REST
+│       ├── services/        # Logica di business
+│       ├── repositories/    # Accesso dati (JPA)
+│       ├── entities/        # Modelli JPA
+│       ├── payloads/        # DTO di request/response
+│       ├── enums/           # Enumerazioni (stati, aree, ruoli)
+│       ├── security/        # JWT, filtro, configurazione sicurezza
+│       ├── printing/        # Gestione stampanti (ESC/POS, seriale)
+│       └── exceptions/      # Gestione centralizzata degli errori
+│
+└── frontend/                # React + TypeScript (Vite)
+    └── src/
+        ├── api/             # Configurazione Axios
+        ├── app/             # Store Redux e hooks
+        ├── components/      # Componenti UI (per feature)
+        ├── features/        # Slices Redux (auth, ordini, prodotti, ...)
+        ├── interfaces/      # Tipi/interfacce TypeScript
+        ├── pages/           # Pagine dell'applicazione
+        └── utils/           # Utility (errori, stampa)
+```

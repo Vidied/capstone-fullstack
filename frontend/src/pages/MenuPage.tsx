@@ -7,7 +7,12 @@ import {
   Spinner,
 } from "react-bootstrap";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
-import { CategoryFilter } from "../components/MenuComp/CategoryFilter";
+import {
+  CategoryFilter,
+  type CategorySelection,
+} from "../components/MenuComp/CategoryFilter";
+import { CategoryHomeGrid } from "../components/MenuComp/CategoryHomeGrid";
+import { GroupedProductList } from "../components/MenuComp/GroupedProductList";
 import { ProductCard } from "../components/MenuComp/ProductCard";
 import { SearchBar } from "../components/CommonComp/SearchBar";
 import { fetchCategoriesThunk } from "../features/slices/categorySlice";
@@ -16,9 +21,13 @@ import { fetchProductsThunk } from "../features/slices/productSlice";
 export const MenuPage = () => {
   const dispatch = useAppDispatch();
 
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
-    null,
-  );
+  const [hasEnteredMenu, setHasEnteredMenu] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] =
+    useState<CategorySelection>("ALL");
+  const [activeScrollCategoryId, setActiveScrollCategoryId] = useState<
+    number | null
+  >(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [isTakeaway, setIsTakeaway] = useState<boolean>(false);
   const {
@@ -40,6 +49,9 @@ export const MenuPage = () => {
 
   const isLoading = loadingCat || loadingProd;
   const generalError = errorCat || errorProd;
+
+  const isSearching = searchTerm.trim().length > 0;
+  const isBrowsing = hasEnteredMenu || isSearching;
 
   const filteredProducts = products.filter((product) => {
     const query = searchTerm.toLowerCase().trim();
@@ -67,10 +79,33 @@ export const MenuPage = () => {
       return matchSearch;
     }
 
-    return selectedCategoryId !== null
-      ? product.categoryId === selectedCategoryId
-      : true;
+    return (
+      selectedCategoryId === "ALL" || selectedCategoryId === product.categoryId
+    );
   });
+
+  const handleSelectCategoryFromHome = (categoryId: number) => {
+    setSelectedCategoryId(categoryId);
+    setHasEnteredMenu(true);
+  };
+
+  const handleSelectAllFromHome = () => {
+    setSelectedCategoryId("ALL");
+    setHasEnteredMenu(true);
+  };
+
+  const handleSelectCategoryFromNav = (selection: CategorySelection) => {
+    const isCurrentlyGrouped = selectedCategoryId === "ALL";
+    const isClickingSpecificCategory = selection !== "ALL";
+
+    if (isCurrentlyGrouped && isClickingSpecificCategory) {
+      const section = document.getElementById(`category-section-${selection}`);
+      section?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    setSelectedCategoryId(selection);
+  };
 
   return (
     <div className="menu-page-bg min-vh-100 py-4 position-relative">
@@ -100,35 +135,63 @@ export const MenuPage = () => {
           </ButtonGroup>
         </div>
 
-        <div className="mb-4 pb-2 border-bottom border-dark-subtle">
-          <CategoryFilter
-            categories={categories}
-            selectedCategoryId={selectedCategoryId}
-            onSelectCategory={(id) => setSelectedCategoryId(id)}
-          />
-        </div>
         {isLoading && (
           <div className="text-center my-5 py-5">
             <Spinner animation="border" variant="dark" />
           </div>
         )}
         {generalError && <Alert variant="danger">{generalError}</Alert>}
-        {!isLoading && !generalError && (
-          <div>
+
+        {!isLoading && !generalError && !isBrowsing && (
+          <CategoryHomeGrid
+            categories={categories}
+            onSelectCategory={handleSelectCategoryFromHome}
+            onSelectAll={handleSelectAllFromHome}
+          />
+        )}
+
+        {!isLoading && !generalError && isBrowsing && (
+          <>
+            {!isSearching && (
+              <div
+                className="mb-4 pb-2 border-bottom border-dark-subtle sticky-top bg-body"
+                style={{ top: 0, zIndex: 10 }}
+              >
+                <CategoryFilter
+                  categories={categories}
+                  selectedCategoryId={
+                    selectedCategoryId === "ALL"
+                      ? (activeScrollCategoryId ?? "ALL")
+                      : selectedCategoryId
+                  }
+                  onSelectCategory={handleSelectCategoryFromNav}
+                />
+              </div>
+            )}
+
             {filteredProducts.length === 0 ? (
               <Alert variant="warning" className="text-center mt-3">
                 Nessun piatto trovato per i filtri selezionati
               </Alert>
+            ) : isSearching || selectedCategoryId !== "ALL" ? (
+              <div>
+                {filteredProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    isTakeaway={isTakeaway}
+                  />
+                ))}
+              </div>
             ) : (
-              filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  isTakeaway={isTakeaway}
-                />
-              ))
+              <GroupedProductList
+                products={filteredProducts}
+                categories={categories}
+                isTakeaway={isTakeaway}
+                onActiveCategoryChange={setActiveScrollCategoryId}
+              />
             )}
-          </div>
+          </>
         )}
       </Container>
     </div>

@@ -7,6 +7,11 @@ import type {
   ProductRequestDTO,
 } from "../../interfaces/Product";
 import type { DestinationArea } from "../../interfaces/Order";
+import {
+  ALL_ALLERGENS,
+  ALLERGEN_LABELS,
+  type Allergen,
+} from "../../interfaces/Product";
 
 interface ProductModalProps {
   show: boolean;
@@ -89,6 +94,18 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [selectedIngredientIds, setSelectedIngredientIds] =
     useState<number[]>(initialIngredientIds);
 
+  const [selectedAllergens, setSelectedAllergens] = useState<Allergen[]>(
+    productToEdit?.allergens ?? [],
+  );
+
+  const handleAllergenToggle = (allergen: Allergen) => {
+    setSelectedAllergens((prev) =>
+      prev.includes(allergen)
+        ? prev.filter((a) => a !== allergen)
+        : [...prev, allergen],
+    );
+  };
+
   const handleIngredientToggle = (id: number) => {
     setSelectedIngredientIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
@@ -108,6 +125,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       isAvailable,
       categoryId: Number(categoryId),
       ingredientIds: selectedIngredientIds,
+      allergens: selectedAllergens,
     };
 
     onSubmit(dto, productToEdit?.id);
@@ -237,7 +255,26 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               )}
             </div>
           </Form.Group>
-
+          <Form.Group className="mb-3">
+            <Form.Label className="fw-bold">
+              Allergeni{" "}
+              <span className="text-muted fw-normal small">
+                (obbligatorio per legge indicarli — Reg. UE 1169/2011)
+              </span>
+            </Form.Label>
+            <div className="d-flex flex-wrap gap-2 border p-3 rounded bg-light">
+              {ALL_ALLERGENS.map((allergen) => (
+                <Form.Check
+                  key={allergen}
+                  type="checkbox"
+                  id={`allergen-check-${allergen}`}
+                  label={ALLERGEN_LABELS[allergen]}
+                  checked={selectedAllergens.includes(allergen)}
+                  onChange={() => handleAllergenToggle(allergen)}
+                />
+              ))}
+            </div>
+          </Form.Group>
           <Form.Group>
             <Form.Check
               type="switch"

@@ -14,9 +14,14 @@ import {
   fetchOrdersThunk,
 } from "../features/slices/orderSlice";
 import { fetchProductsThunk } from "../features/slices/productSlice";
-import type { CartItem, OrderRequestDTO, OrderType } from "../interfaces/Order";
+import { fetchIngredientsThunk } from "../features/slices/ingredientSlice";
+import type {
+  CartItem,
+  CartItemExtra,
+  OrderRequestDTO,
+  OrderType,
+} from "../interfaces/Order";
 import type { Product } from "../interfaces/Product";
-import { printTickets, splitItemsByDestination } from "../utils/printer";
 
 export const CreateOrderPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -26,6 +31,8 @@ export const CreateOrderPage: React.FC = () => {
     loading: productsLoading,
     error: productsError,
   } = useSelector((state: RootState) => state.products);
+
+  const { ingredients } = useSelector((state: RootState) => state.ingredients);
 
   const { orders, isSubmitting, successMessage, errorMessage } = useSelector(
     (state: RootState) => state.orders,
@@ -47,6 +54,7 @@ export const CreateOrderPage: React.FC = () => {
   useEffect(() => {
     dispatch(fetchProductsThunk());
     dispatch(fetchOrdersThunk());
+    dispatch(fetchIngredientsThunk());
     return () => {
       dispatch(clearOrderMessages());
     };
@@ -103,7 +111,8 @@ export const CreateOrderPage: React.FC = () => {
       const existingIndex = prevCart.findIndex(
         (item) =>
           item.product.id === product.id &&
-          (!item.notes || item.notes.trim() === ""),
+          (!item.notes || item.notes.trim() === "") &&
+          (!item.extras || item.extras.length === 0),
       );
 
       if (existingIndex !== -1) {
@@ -115,7 +124,7 @@ export const CreateOrderPage: React.FC = () => {
         return newCart;
       }
 
-      return [...prevCart, { product, quantity: 1, notes: "" }];
+      return [...prevCart, { product, quantity: 1, notes: "", extras: [] }];
     });
   };
 
@@ -128,6 +137,26 @@ export const CreateOrderPage: React.FC = () => {
   const handleUpdateNotesByIndex = (index: number, notes: string) => {
     setCart((prevCart) =>
       prevCart.map((item, i) => (i === index ? { ...item, notes } : item)),
+    );
+  };
+
+  const handleUpdateExtrasByIndex = (
+    index: number,
+    extras: CartItemExtra[],
+  ) => {
+    setCart((prevCart) =>
+      prevCart.map((item, i) => (i === index ? { ...item, extras } : item)),
+    );
+  };
+
+  const handleUpdateRemovedIngredientsByIndex = (
+    index: number,
+    removedIngredients: string[],
+  ) => {
+    setCart((prevCart) =>
+      prevCart.map((item, i) =>
+        i === index ? { ...item, removedIngredients } : item,
+      ),
     );
   };
 
@@ -157,6 +186,8 @@ export const CreateOrderPage: React.FC = () => {
         productId: item.product.id,
         quantity: item.quantity,
         notes: item.notes || undefined,
+        extraIngredientIds: item.extras?.map((e) => e.ingredientId),
+        removedIngredientNames: item.removedIngredients,
       }));
 
       const resultAction = await dispatch(
@@ -170,14 +201,6 @@ export const CreateOrderPage: React.FC = () => {
       );
 
       if (appendItemsThunk.fulfilled.match(resultAction)) {
-        const tickets = splitItemsByDestination(
-          cart,
-          tableNumber,
-          orderType,
-          true,
-          generalNotes,
-        );
-        printTickets(tickets);
         resetForm();
       }
       return;
@@ -194,20 +217,14 @@ export const CreateOrderPage: React.FC = () => {
         productId: item.product.id,
         quantity: item.quantity,
         notes: item.notes || undefined,
+        extraIngredientIds: item.extras?.map((e) => e.ingredientId),
+        removedIngredientNames: item.removedIngredients,
       })),
     };
 
     const resultAction = await dispatch(createOrderThunk(payload));
 
     if (createOrderThunk.fulfilled.match(resultAction)) {
-      const tickets = splitItemsByDestination(
-        cart,
-        tableNumber,
-        orderType,
-        false,
-        generalNotes,
-      );
-      printTickets(tickets);
       resetForm();
     }
   };
@@ -240,9 +257,6 @@ export const CreateOrderPage: React.FC = () => {
 
       {successMessage && <Alert variant="success">{successMessage}</Alert>}
       {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
-      {errorMessage && (
-        <Alert variant="danger">Errore ordini: {errorMessage}</Alert>
-      )}
 
       {orderType === "TAVOLO" && activeOrderForTable && (
         <Alert
@@ -300,6 +314,7 @@ export const CreateOrderPage: React.FC = () => {
         <Col md={5} className="order-1 order-md-2 mb-4">
           <OrderSummary
             cart={cart}
+            ingredients={ingredients}
             tableNumber={tableNumber}
             coverCount={coverCount}
             orderType={orderType}
@@ -310,6 +325,8 @@ export const CreateOrderPage: React.FC = () => {
             onGeneralNotesChange={setGeneralNotes}
             onUpdateQuantity={handleUpdateQuantityByIndex}
             onUpdateNotes={handleUpdateNotesByIndex}
+            onUpdateExtras={handleUpdateExtrasByIndex}
+            onUpdateRemovedIngredients={handleUpdateRemovedIngredientsByIndex}
             onRemoveItem={handleRemoveItemByIndex}
             onSubmitOrder={handleSubmitOrder}
             isSubmitting={isSubmitting}
