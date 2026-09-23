@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Col, Modal } from "react-bootstrap";
 import type { Product } from "../../interfaces/Product";
+import { ALLERGEN_LABELS } from "../../interfaces/Product";
 
 interface ProductCardProps {
   product: Product;
@@ -18,6 +19,7 @@ export const ProductCard = ({ product, isTakeaway }: ProductCardProps) => {
     product.ingredientNames && product.ingredientNames.length > 0;
   const hasDescription =
     product.description && product.description.trim() !== "";
+  const hasAllergens = product.allergens && product.allergens.length > 0;
 
   const ingredientsText = product.ingredientNames?.join(", ");
 
@@ -71,6 +73,20 @@ export const ProductCard = ({ product, isTakeaway }: ProductCardProps) => {
               </p>
             </div>
           )}
+
+          {hasAllergens && (
+            <div className="mt-2 d-flex flex-wrap gap-1 text-start">
+              {product.allergens!.map((a) => (
+                <span
+                  key={a}
+                  className="badge bg-warning-subtle text-dark border border-warning-subtle"
+                  style={{ fontSize: "0.7rem", fontWeight: 600 }}
+                >
+                  {ALLERGEN_LABELS[a]}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </Col>
       <Modal
@@ -114,7 +130,7 @@ export const ProductCard = ({ product, isTakeaway }: ProductCardProps) => {
             )}
 
             {hasIngredients && (
-              <div className="text-start">
+              <div className="mb-3 text-start">
                 <h6 className="fw-bold text-dark small text-uppercase mb-1">
                   Ingredienti
                 </h6>
@@ -124,6 +140,24 @@ export const ProductCard = ({ product, isTakeaway }: ProductCardProps) => {
                 >
                   {ingredientsText}
                 </p>
+              </div>
+            )}
+
+            {hasAllergens && (
+              <div className="text-start">
+                <h6 className="fw-bold text-dark small text-uppercase mb-1">
+                  Allergeni
+                </h6>
+                <div className="d-flex flex-wrap gap-2">
+                  {product.allergens!.map((a) => (
+                    <span
+                      key={a}
+                      className="badge bg-warning-subtle text-dark border border-warning-subtle"
+                    >
+                      {ALLERGEN_LABELS[a]}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
           </Modal.Body>
