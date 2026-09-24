@@ -56,13 +56,12 @@ Apri il file `backend/src/main/resources/application.properties` e imposta i par
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/capstone
 spring.datasource.username=postgres
-spring.datasource.password=LA_TUA_PASSWORD
+spring.datasource.password=YOUR_DB_PASSWORD
 ```
 
-> **Nota sulla configurazione (Niente file `.env`? Nessuna dimenticanza!):**
-> Si è scelto deliberatamente di non utilizzare file `.env` o variabili d'ambiente esterne, ma di centralizzare i parametri in `application.properties`. Questa scelta è pensata per i contesti di valutazione e code review: chi corregge il progetto può avviare il backend _subito_, senza il rischio di inciampare in errori dovuti a file di environment mancanti, variabili di sistema non mappate o configurazioni locali errate.
+> **Valori di prova:** i valori presenti nel file (password, `jwt.secret`, account admin e porte delle stampanti) sono credenziali di esempio pensate per l'avvio immediato del progetto, senza bisogno di file `.env`. Vanno cambiate in un contesto reale.
 
-> **Avviso di sicurezza:** le credenziali del database (`username`, `password`) e la chiave `jwt.secret` sono attualmente **hardcoded** in `application.properties`, così come l'account amministratore creato dal seeder. Questa scelta è accettabile per un progetto didattico, ma in un contesto reale (o prima di pubblicare il repository) andrebbero **esternalizzate** (variabili d'ambiente o secret manager) e **ruotate**, per evitare di esporre credenziali sensibili nel codice sorgente.
+> **Nota sulla configurazione (niente file `.env`? nessuna dimenticanza!):** si è scelto deliberatamente di non utilizzare file `.env` o variabili d'ambiente esterne, ma di centralizzare i parametri in `application.properties`. Questa scelta è pensata per i contesti di valutazione e code review: chi corregge il progetto può avviare il backend _subito_, senza il rischio di inciampare in errori dovuti a file di environment mancanti, variabili di sistema non mappate o configurazioni locali errate.
 
 ### 1.3 Avvia il server
 
@@ -151,32 +150,3 @@ npm run dev
 ```
 
 Login di prova come amministratore: `admin@restaurant.com` / `AdminPassword123!`
-
----
-
-## Struttura del progetto
-
-```
-capstone-fullstack/
-├── backend/                 # Spring Boot (Java 25)
-│   └── src/main/java/davidepan/capstone/
-│       ├── controllers/     # Endpoint REST
-│       ├── services/        # Logica di business
-│       ├── repositories/    # Accesso dati (JPA)
-│       ├── entities/        # Modelli JPA
-│       ├── payloads/        # DTO di request/response
-│       ├── enums/           # Enumerazioni (stati, aree, ruoli)
-│       ├── security/        # JWT, filtro, configurazione sicurezza
-│       ├── printing/        # Gestione stampanti (ESC/POS, seriale)
-│       └── exceptions/      # Gestione centralizzata degli errori
-│
-└── frontend/                # React + TypeScript (Vite)
-    └── src/
-        ├── api/             # Configurazione Axios
-        ├── app/             # Store Redux e hooks
-        ├── components/      # Componenti UI (per feature)
-        ├── features/        # Slices Redux (auth, ordini, prodotti, ...)
-        ├── interfaces/      # Tipi/interfacce TypeScript
-        ├── pages/           # Pagine dell'applicazione
-        └── utils/           # Utility (errori, stampa)
-```
