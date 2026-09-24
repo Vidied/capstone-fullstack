@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Card, Col, Container, Form, Row } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { useDebounce } from "../app/hooks";
@@ -19,9 +19,17 @@ import type {
   CartItem,
   CartItemExtra,
   OrderRequestDTO,
+  OrderStatus,
   OrderType,
 } from "../interfaces/Order";
 import type { Product } from "../interfaces/Product";
+
+const OPEN_STATUSES: OrderStatus[] = [
+  "PENDING",
+  "PREPARATION",
+  "READY",
+  "SERVED",
+];
 
 export const CreateOrderPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -60,24 +68,23 @@ export const CreateOrderPage: React.FC = () => {
     };
   }, [dispatch]);
 
+  const findOpenOrderForTable = useCallback(
+    (tableNum: number) =>
+      orders.find(
+        (o) =>
+          o.tableNumber === tableNum && OPEN_STATUSES.includes(o.orderStatus),
+      ),
+    [orders],
+  );
+
   const activeOrderForTable = useMemo(() => {
     if (orderType !== "TAVOLO" || !tableNumber) return null;
-    const tableNum = Number(tableNumber);
-    return orders.find(
-      (o) => o.tableNumber === tableNum && o.orderStatus !== "COMPLETED",
-    );
-  }, [orders, orderType, tableNumber]);
+    return findOpenOrderForTable(Number(tableNumber)) ?? null;
+  }, [findOpenOrderForTable, orderType, tableNumber]);
 
   const handleTableChange = (value: string) => {
     setTableNumber(value);
-    const tableNum = Number(value);
-
-    const activeOrder = orders.find(
-      (o) =>
-        o.tableNumber === tableNum &&
-        o.orderStatus !== "COMPLETED" &&
-        o.orderStatus !== "CANCELLED",
-    );
+    const activeOrder = findOpenOrderForTable(Number(value));
 
     if (activeOrder) {
       setIsExtraOrder(true);

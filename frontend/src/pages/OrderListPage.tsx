@@ -24,7 +24,6 @@ import {
   updateOrderStatusThunk,
 } from "../features/slices/orderSlice";
 import type { Order, OrderStatus } from "../interfaces/Order";
-import { printCancellationTicket } from "../utils/printer";
 
 type BulkDeleteTarget = "COMPLETED" | "CANCELLED" | null;
 
@@ -113,24 +112,12 @@ export const OrdersListPage: React.FC = () => {
 
   const handleCancelOrder = async (
     orderId: number,
-    tableNumber?: number | string | null,
-    orderType: string = "TAVOLO",
+    _tableNumber?: number | string | null,
+    _orderType: string = "TAVOLO",
   ) => {
-    const result = await dispatch(
+    await dispatch(
       updateOrderStatusThunk({ orderId, data: { orderStatus: "CANCELLED" } }),
     );
-
-    if (updateOrderStatusThunk.fulfilled.match(result)) {
-      printCancellationTicket({
-        orderId,
-        tableNumber,
-        orderType,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      });
-    }
   };
 
   const handleConfirmBulkDelete = () => {
