@@ -65,15 +65,23 @@ spring.datasource.password=YOUR_DB_PASSWORD
 
 ### 1.3 Avvia il server
 
+Hai due modi, scegli quello che preferisci.
+
+**Opzione A — da terminale (Maven):**
+
 Dalla cartella `backend/`:
 
 ```bash
 mvn spring-boot:run
 ```
 
-Il backend sarà attivo su **http://localhost:8080**.
+**Opzione B — con IntelliJ IDEA (più semplice):**
 
-> **Nota sul wrapper Maven:** nel repository è presente lo script `mvnw` (Unix/Linux/macOS), utilizzabile con `./mvnw spring-boot:run`. **Su Windows lo script `mvnw.cmd` non è incluso**, quindi in quel caso è necessario avere **Maven installato globalmente** e usare `mvn spring-boot:run`. In alternativa, se si ha Maven a disposizione, si può rigenerare lo script Windows con:
+Apri il progetto in IntelliJ, individua la classe `CapstoneApplication` e premi il pulsante ▶ (Run). IntelliJ scarica automaticamente le dipendenze Maven e avvia il server: non serve installare Maven globalmente.
+
+In entrambi i casi il backend sarà attivo su **http://localhost:8080**.
+
+> **Nota sul wrapper Maven:** nel repository è presente lo script `mvnw` (Unix/Linux/macOS), utilizzabile con `./mvnw spring-boot:run`. **Su Windows lo script `mvnw.cmd` non è incluso**, quindi per l'avvio da terminale serve **Maven installato globalmente** (`mvn spring-boot:run`) oppure si usa IntelliJ (Opzione B). In alternativa, se si ha Maven a disposizione, si può rigenerare lo script Windows con:
 >
 > ```bash
 > mvn -N wrapper:wrapper -Dtype=only-script
