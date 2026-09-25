@@ -1,10 +1,7 @@
 package davidepan.capstone.controllers;
 
 import davidepan.capstone.enums.OrderStatus;
-import davidepan.capstone.payloads.OrderItemRequestDTO;
-import davidepan.capstone.payloads.OrderRequestDTO;
-import davidepan.capstone.payloads.OrderResponseDTO;
-import davidepan.capstone.payloads.OrderStatusUpdateDTO;
+import davidepan.capstone.payloads.*;
 import davidepan.capstone.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,8 +42,8 @@ public class OrderController {
     }
 
     @PostMapping("/{id:\\d+}/items")
-    public OrderResponseDTO appendItemsToOrder(@PathVariable Long id, @RequestBody @Validated List<OrderItemRequestDTO> items) {
-        return orderService.appendItems(id, items);
+    public OrderResponseDTO appendItemsToOrder(@PathVariable Long id, @RequestBody @Validated AppendItemsRequestDTO body) {
+        return orderService.appendItems(id, body.items(), body.coverCount());
     }
 
     @PatchMapping("/{id:\\d+}/status")
@@ -70,5 +67,27 @@ public class OrderController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteSelectedCompletedOrders(@RequestBody List<Long> ids) {
         orderService.deleteSelectedCompletedOrders(ids);
+    }
+
+    @DeleteMapping("/cancelled/all")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteAllCancelledOrders() {
+        orderService.deleteAllCancelledOrders();
+    }
+
+    @DeleteMapping("/cancelled/batch")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteSelectedCancelledOrders(@RequestBody List<Long> ids) {
+        orderService.deleteSelectedCancelledOrders(ids);
+    }
+
+    @PostMapping("/{id:\\d+}/print")
+    public List<PrintResultDTO> printOrder(@PathVariable Long id) {
+        return orderService.printOrder(id);
+    }
+
+    @PostMapping("/{id:\\d+}/print/receipt")
+    public PrintResultDTO printReceipt(@PathVariable Long id) {
+        return orderService.printReceipt(id);
     }
 }

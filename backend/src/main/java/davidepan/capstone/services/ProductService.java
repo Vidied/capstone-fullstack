@@ -13,7 +13,7 @@ import davidepan.capstone.repositories.IngredientRepository;
 import davidepan.capstone.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // Import Spring corretto
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -95,8 +95,10 @@ public class ProductService {
                 category,
                 ingredients
         );
+        product.setAllergens(body.allergens() != null ? body.allergens() : new HashSet<>());
 
         Product savedProduct = productRepository.save(product);
+
         return ProductResponseDTO.fromEntity(savedProduct);
     }
 
@@ -132,7 +134,7 @@ public class ProductService {
             throw new BadRequestException("Impossibile rendere disponibile il prodotto: contiene ingredienti non disponibili.");
         }
 
-        if (body.name() != null) found.setName(body.name());
+                if (body.name() != null) found.setName(body.name());
         if (body.description() != null) found.setDescription(body.description());
         if (body.price() != null) found.setPrice(body.price());
         if (body.destinationArea() != null) found.setDestinationArea(body.destinationArea());
@@ -141,7 +143,7 @@ public class ProductService {
         } else if (body.price() != null) {
             found.setTakeawayPrice(body.price().subtract(BigDecimal.valueOf(2)));
         }
-        if (body.takeawayPrice() != null) found.setTakeawayPrice(body.takeawayPrice());
+        if (body.allergens() != null) found.setAllergens(body.allergens());
         found.setIsAvailable(targetAvailability);
 
 

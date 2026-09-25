@@ -8,6 +8,7 @@ import type {
   AppendItemsDTO,
   Order,
   OrderRequestDTO,
+  PrintResultDTO,
   UpdateOrderStatusDTO,
 } from "../../interfaces/Order";
 import { extractErrorMessage } from "../../utils/errorUtils";
@@ -64,19 +65,25 @@ export const appendItemsThunk = createAsyncThunk<
   Order,
   { orderId: number } & AppendItemsDTO,
   { rejectValue: string }
->("orders/appendItems", async ({ orderId, items }, { rejectWithValue }) => {
-  try {
-    const response = await API.post<Order>(`/orders/${orderId}/items`, items);
-    return response.data;
-  } catch (err) {
-    return rejectWithValue(
-      extractErrorMessage(
-        err,
-        "Errore durante l'aggiunta di elementi all'ordine",
-      ),
-    );
-  }
-});
+>(
+  "orders/appendItems",
+  async ({ orderId, items, coverCount }, { rejectWithValue }) => {
+    try {
+      const response = await API.post<Order>(`/orders/${orderId}/items`, {
+        items,
+        coverCount: coverCount ?? null,
+      });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(
+        extractErrorMessage(
+          err,
+          "Errore durante l'aggiunta di elementi all'ordine",
+        ),
+      );
+    }
+  },
+);
 
 // Aggiornamento dello stato dell'ordine (es. COMPLETED, CANCELLED)
 export const updateOrderStatusThunk = createAsyncThunk<
@@ -126,6 +133,78 @@ export const deleteCompletedOrdersThunk = createAsyncThunk<
         err,
         "Errore durante l'eliminazione degli ordini completati",
       ),
+    );
+  }
+});
+
+export const deleteCancelledOrdersThunk = createAsyncThunk<
+  void,
+  void,
+  { rejectValue: string }
+>("orders/deleteCancelledOrders", async (_, { rejectWithValue }) => {
+  try {
+    await API.delete("/orders/cancelled/all");
+  } catch (err) {
+    return rejectWithValue(
+      extractErrorMessage(
+        err,
+        "Errore durante l'eliminazione degli ordini cancellati",
+      ),
+    );
+  }
+});
+
+// Ristampa di tutte le comande di un ordine (una per destinazione)
+export const printOrderThunk = createAsyncThunk<
+  string,
+  number,
+  { rejectValue: string }
+>("orders/printOrder", async (orderId, { rejectWithValue }) => {
+  try {
+    const response = await API.post<PrintResultDTO[]>(
+      `/orders/${orderId}/print`,
+    );
+    const failed = response.data.filter((r) => !r.success);
+
+    if (failed.length > 0) {
+      const detail = failed
+        .map(
+          (r) =>
+            `${r.destinationArea ?? "?"}: ${r.errorMessage ?? "errore sconosciuto"}`,
+        )
+        .join("; ");
+      return rejectWithValue(`Ristampa comanda fallita per: ${detail}`);
+    }
+
+    return "Comanda ristampata con successo!";
+  } catch (err) {
+    return rejectWithValue(
+      extractErrorMessage(err, "Errore durante la ristampa della comanda"),
+    );
+  }
+});
+
+// Stampa dello scontrino completo per il cliente
+export const printReceiptThunk = createAsyncThunk<
+  string,
+  number,
+  { rejectValue: string }
+>("orders/printReceipt", async (orderId, { rejectWithValue }) => {
+  try {
+    const response = await API.post<PrintResultDTO>(
+      `/orders/${orderId}/print/receipt`,
+    );
+
+    if (!response.data.success) {
+      return rejectWithValue(
+        `Stampa scontrino fallita: ${response.data.errorMessage ?? "errore sconosciuto"}`,
+      );
+    }
+
+    return "Scontrino stampato con successo!";
+  } catch (err) {
+    return rejectWithValue(
+      extractErrorMessage(err, "Errore durante la stampa dello scontrino"),
     );
   }
 });
@@ -235,6 +314,45 @@ export const orderSlice = createSlice({
         state.errorMessage =
           action.payload ||
           "Errore durante l'eliminazione degli ordini completati";
+      })
+      .addCase(deleteCancelledOrdersThunk.fulfilled, (state) => {
+        state.orders = state.orders.filter(
+          (o) => o.orderStatus !== "CANCELLED",
+        );
+        state.successMessage = "Ordini cancellati eliminati con successo!";
+      })
+      .addCase(deleteCancelledOrdersThunk.rejected, (state, action) => {
+        state.errorMessage =
+          action.payload ||
+          "Errore durante l'eliminazione degli ordini cancellati";
+      })
+      .addCase(printOrderThunk.pending, (state) => {
+        state.errorMessage = null;
+        state.successMessage = null;
+      })
+      .addCase(
+        printOrderThunk.fulfilled,
+        (state, action: PayloadAction<string>) => {
+          state.successMessage = action.payload;
+        },
+      )
+      .addCase(printOrderThunk.rejected, (state, action) => {
+        state.errorMessage =
+          action.payload || "Errore durante la ristampa della comanda";
+      })
+      .addCase(printReceiptThunk.pending, (state) => {
+        state.errorMessage = null;
+        state.successMessage = null;
+      })
+      .addCase(
+        printReceiptThunk.fulfilled,
+        (state, action: PayloadAction<string>) => {
+          state.successMessage = action.payload;
+        },
+      )
+      .addCase(printReceiptThunk.rejected, (state, action) => {
+        state.errorMessage =
+          action.payload || "Errore durante la stampa dello scontrino";
       });
   },
 });

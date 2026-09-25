@@ -2,11 +2,13 @@ package davidepan.capstone.services;
 
 import davidepan.capstone.entities.Order;
 import davidepan.capstone.entities.OrderItem;
+import davidepan.capstone.entities.OrderItemExtra;
 import davidepan.capstone.entities.Product;
 import davidepan.capstone.enums.OrderStatus;
 import davidepan.capstone.exceptions.BadRequestException;
 import davidepan.capstone.exceptions.NotFoundException;
 import davidepan.capstone.payloads.*;
+import davidepan.capstone.repositories.IngredientRepository;
 import davidepan.capstone.repositories.OrderRepository;
 import davidepan.capstone.repositories.ProductRepository;
 import jakarta.transaction.Transactional;
@@ -18,9 +20,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class OrderService {
+
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
 
     @Autowired
     private OrderRepository orderRepository;
@@ -28,8 +34,14 @@ public class OrderService {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private IngredientRepository ingredientRepository;
+
     @Value("${restaurant.cover-price}")
     private BigDecimal defaultCoverPrice;
+
+    @Autowired
+    private OrderPrintService orderPrintService;
 
     public Order findEntityById(Long id) {
         return orderRepository.findByIdWithDetails(id)
@@ -56,7 +68,6 @@ public class OrderService {
     @Transactional
     public OrderResponseDTO save(OrderRequestDTO body) {
         Order newOrder = new Order();
-
         newOrder.setTableNumber(body.tableNumber());
         newOrder.setOrderType(body.orderType());
         newOrder.setCoverPrice(defaultCoverPrice);
@@ -67,6 +78,13 @@ public class OrderService {
         this.processOrderItemsAndTotal(newOrder, body.items(), body.coverCount());
 
         Order savedOrder = orderRepository.save(newOrder);
+
+        try {
+            orderPrintService.printFullOrder(savedOrder);
+        } catch (Exception e) {
+            log.error("Errore inatteso durante la stampa dell'ordine {}", savedOrder.getId(), e);
+        }
+
         return convertToResponseDto(savedOrder);
     }
 
@@ -86,17 +104,18 @@ public class OrderService {
         return convertToResponseDto(updatedOrder);
     }
 
-    // Aggiunta di nuovi prodotti a un ordine esistente
+        // Aggiunta di nuovi prodotti a un ordine esistente
     @Transactional
-    public OrderResponseDTO appendItems(Long orderId, List<OrderItemRequestDTO> newItemsDTO) {
+    public OrderResponseDTO appendItems(Long orderId, List<OrderItemRequestDTO> newItemsDTO, Integer newCoverCount) {
         Order order = this.findEntityById(orderId);
 
         if (order.getOrderStatus() == OrderStatus.COMPLETED || order.getOrderStatus() == OrderStatus.CANCELLED) {
-            throw new BadRequestException("Impossibile modificare un ordine già chiuso o annullato.");
+            throw new BadRequestException("Impossibile integrare un ordine chiuso o annullato.");
         }
 
         boolean isTakeaway = order.getOrderType() != null && order.getOrderType().name().equalsIgnoreCase("ASPORTO");
         BigDecimal addedProductsTotal = BigDecimal.ZERO;
+        List<OrderItem> addedItems = new ArrayList<>();
 
         for (OrderItemRequestDTO itemDTO : newItemsDTO) {
             Product product = productRepository.findById(itemDTO.productId())
@@ -109,28 +128,63 @@ public class OrderService {
             BigDecimal unitPrice = product.getPrice();
             BigDecimal takeawayUnitPrice = product.getTakeawayPrice();
 
+            List<OrderItemExtra> extras = resolveExtras(itemDTO.extraIngredientIds());
+            BigDecimal extrasUnitPrice = sumExtrasPrice(extras);
+
             OrderItem orderItem = new OrderItem(order, product, itemDTO.quantity(), unitPrice, takeawayUnitPrice, itemDTO.notes());
+            orderItem.setExtras(extras);
+            orderItem.setRemovedIngredients(
+                    itemDTO.removedIngredientNames() != null ? itemDTO.removedIngredientNames() : new ArrayList<>()
+            );
 
             BigDecimal activePrice = (isTakeaway && takeawayUnitPrice != null && takeawayUnitPrice.compareTo(BigDecimal.ZERO) > 0)
                     ? takeawayUnitPrice
                     : unitPrice;
 
-
             order.getItems().add(orderItem);
+            addedItems.add(orderItem);
 
-            BigDecimal itemSubtotal = activePrice.multiply(BigDecimal.valueOf(itemDTO.quantity()));
+            BigDecimal itemSubtotal = activePrice.add(extrasUnitPrice).multiply(BigDecimal.valueOf(itemDTO.quantity()));
             addedProductsTotal = addedProductsTotal.add(itemSubtotal);
         }
 
-        order.setTotalAmount(order.getTotalAmount().add(addedProductsTotal));
+        BigDecimal newTotal = order.getTotalAmount().add(addedProductsTotal);
+
+        if (newCoverCount != null && !newCoverCount.equals(order.getCoverCount())) {
+            BigDecimal coverPrice = order.getCoverPrice() != null ? order.getCoverPrice() : defaultCoverPrice;
+            int previousCoverCount = order.getCoverCount() != null ? order.getCoverCount() : 0;
+            BigDecimal coverDelta = coverPrice.multiply(BigDecimal.valueOf(newCoverCount - previousCoverCount));
+            newTotal = newTotal.add(coverDelta);
+            order.setCoverCount(newCoverCount);
+        }
+
+        order.setTotalAmount(newTotal);
 
         Order updatedOrder = orderRepository.save(order);
+
+        try {
+            orderPrintService.printItems(updatedOrder, addedItems, true);
+        } catch (Exception e) {
+            log.error("Errore inatteso durante la stampa dell'integrazione per l'ordine {}", updatedOrder.getId(), e);
+        }
+
         return convertToResponseDto(updatedOrder);
     }
-    public OrderResponseDTO updateStatus(Long id, OrderStatusUpdateDTO body) {
+
+                    public OrderResponseDTO updateStatus(Long id, OrderStatusUpdateDTO body) {
         Order found = this.findEntityById(id);
+        boolean wasCancelled = found.getOrderStatus() == OrderStatus.CANCELLED;
         found.setOrderStatus(body.orderStatus());
         Order updatedOrder = orderRepository.save(found);
+
+        if (!wasCancelled && body.orderStatus() == OrderStatus.CANCELLED) {
+            try {
+                orderPrintService.printCancellation(updatedOrder);
+            } catch (Exception e) {
+                log.error("Errore inatteso durante la stampa dell'annullamento per l'ordine {}", updatedOrder.getId(), e);
+            }
+        }
+
         return convertToResponseDto(updatedOrder);
     }
 
@@ -145,6 +199,22 @@ public class OrderService {
         if (ids != null && !ids.isEmpty()) {
             List<Order> ordersToDelete = orderRepository.findAllById(ids).stream()
                     .filter(o -> o.getOrderStatus() == OrderStatus.COMPLETED)
+                    .toList();
+            orderRepository.deleteAll(ordersToDelete);
+        }
+    }
+
+    @Transactional
+    public void deleteAllCancelledOrders() {
+        List<Order> cancelledOrders = orderRepository.findByOrderStatusWithDetails(OrderStatus.CANCELLED);
+        orderRepository.deleteAll(cancelledOrders);
+    }
+
+    @Transactional
+    public void deleteSelectedCancelledOrders(List<Long> ids) {
+        if (ids != null && !ids.isEmpty()) {
+            List<Order> ordersToDelete = orderRepository.findAllById(ids).stream()
+                    .filter(o -> o.getOrderStatus() == OrderStatus.CANCELLED)
                     .toList();
             orderRepository.deleteAll(ordersToDelete);
         }
@@ -166,7 +236,13 @@ public class OrderService {
                         item.getUnitPrice(),
                         item.getTakeawayUnitPrice(),
                         item.getNotes(),
-                        item.getProduct() != null ? item.getProduct().getDestinationArea() : null
+                        item.getProduct() != null ? item.getProduct().getDestinationArea() : null,
+                        item.getExtras() != null
+                        ? item.getExtras().stream()
+                                .map(e -> new OrderItemExtraResponseDTO(e.getIngredientName(), e.getPrice()))
+                                .toList()
+                        : List.of(),
+                        item.getRemovedIngredients() != null ? item.getRemovedIngredients() : List.of()
                 )).toList()
                 : List.of();
 
@@ -208,10 +284,17 @@ public class OrderService {
                         ? takeawayUnitPrice
                         : unitPrice;
 
+                List<OrderItemExtra> extras = resolveExtras(itemDTO.extraIngredientIds());
+                BigDecimal extrasUnitPrice = sumExtrasPrice(extras);
+
                 OrderItem orderItem = new OrderItem(order, product, itemDTO.quantity(), unitPrice, takeawayUnitPrice, itemDTO.notes());
+                orderItem.setExtras(extras);
+                orderItem.setRemovedIngredients(
+                        itemDTO.removedIngredientNames() != null ? itemDTO.removedIngredientNames() : new ArrayList<>()
+                );
                 items.add(orderItem);
 
-                BigDecimal itemSubtotal = activePrice.multiply(BigDecimal.valueOf(itemDTO.quantity()));
+                BigDecimal itemSubtotal = activePrice.add(extrasUnitPrice).multiply(BigDecimal.valueOf(itemDTO.quantity()));
                 productsTotal = productsTotal.add(itemSubtotal);
             }
         }
@@ -224,4 +307,34 @@ public class OrderService {
         order.setCoverCount(actualCoverCount);
         order.setTotalAmount(productsTotal.add(totalCoverAmount));
         order.setCoverPrice(defaultCoverPrice);
-    }}
+    }
+
+
+
+    private List<OrderItemExtra> resolveExtras(List<Long> extraIngredientIds) {
+        if (extraIngredientIds == null || extraIngredientIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(extraIngredientIds.stream()
+                .map(ingredientId -> ingredientRepository.findById(ingredientId)
+                        .orElseThrow(() -> new NotFoundException("Ingrediente extra con ID " + ingredientId + " non trovato")))
+                .map(ingredient -> new OrderItemExtra(ingredient.getId(), ingredient.getName(), ingredient.getExtraPrice()))
+                .toList());
+    }
+
+    private BigDecimal sumExtrasPrice(List<OrderItemExtra> extras) {
+        return extras.stream()
+                .map(OrderItemExtra::getPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public List<PrintResultDTO> printOrder(Long id) {
+        Order order = this.findEntityById(id);
+        return orderPrintService.printFullOrder(order);
+    }
+
+    public PrintResultDTO printReceipt(Long id) {
+        Order order = this.findEntityById(id);
+        return orderPrintService.printCustomerReceipt(order);
+    }
+}

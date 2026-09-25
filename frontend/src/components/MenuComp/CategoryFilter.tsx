@@ -1,11 +1,13 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Nav } from "react-bootstrap";
 import type { Category } from "../../interfaces/Product";
 
+export type CategorySelection = number | "ALL";
+
 interface CategoryFilterProps {
   categories: Category[];
-  selectedCategoryId: number | null;
-  onSelectCategory: (categoryId: number | null) => void;
+  selectedCategoryId: CategorySelection;
+  onSelectCategory: (categoryId: CategorySelection) => void;
 }
 
 export const CategoryFilter = ({
@@ -14,12 +16,22 @@ export const CategoryFilter = ({
   onSelectCategory,
 }: CategoryFilterProps) => {
   const navRef = useRef<HTMLDivElement>(null);
+  const pillRefs = useRef<Map<string, HTMLElement>>(new Map());
 
   const handleWheel = (e: React.WheelEvent) => {
     if (navRef.current && e.deltaY !== 0) {
       navRef.current.scrollLeft += e.deltaY;
     }
   };
+
+  useEffect(() => {
+    const activePill = pillRefs.current.get(String(selectedCategoryId));
+    activePill?.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest",
+    });
+  }, [selectedCategoryId]);
 
   return (
     <div
@@ -29,16 +41,32 @@ export const CategoryFilter = ({
     >
       <Nav
         variant="pills"
-        activeKey={selectedCategoryId ? String(selectedCategoryId) : ""}
+        activeKey={String(selectedCategoryId)}
         onSelect={(selectedKey) => {
-          const id = Number(selectedKey);
-          onSelectCategory(selectedCategoryId === id ? null : id);
+          if (!selectedKey) return;
+          onSelectCategory(selectedKey === "ALL" ? "ALL" : Number(selectedKey));
         }}
         className="custom-category-pills flex-nowrap px-3"
       >
+        <Nav.Item>
+          <Nav.Link
+            ref={(el: HTMLElement | null) => {
+              if (el) pillRefs.current.set("ALL", el);
+              else pillRefs.current.delete("ALL");
+            }}
+            eventKey="ALL"
+            className="px-3 py-1.5 me-1 fw-semibold small shadow-sm"
+          >
+            Tutti
+          </Nav.Link>
+        </Nav.Item>
         {categories.map((cat) => (
           <Nav.Item key={cat.id}>
             <Nav.Link
+              ref={(el: HTMLElement | null) => {
+                if (el) pillRefs.current.set(String(cat.id), el);
+                else pillRefs.current.delete(String(cat.id));
+              }}
               eventKey={String(cat.id)}
               className="px-3 py-1.5 me-1 fw-semibold small shadow-sm"
             >

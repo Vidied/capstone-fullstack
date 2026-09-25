@@ -22,12 +22,18 @@ export const IngredientModal: React.FC<IngredientModalProps> = ({
   const [isAvailable, setIsAvailable] = useState<boolean>(
     ingredientToEdit?.isAvailable ?? true,
   );
+  const [extraPrice, setExtraPrice] = useState<number>(
+    ingredientToEdit?.extraPrice ?? 1,
+  );
 
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
-    onSubmit({ name: name.trim(), isAvailable }, ingredientToEdit?.id);
+    onSubmit(
+      { name: name.trim(), isAvailable, extraPrice },
+      ingredientToEdit?.id,
+    );
     onHide();
   };
 
@@ -50,6 +56,21 @@ export const IngredientModal: React.FC<IngredientModalProps> = ({
               onChange={(e) => setName(e.target.value)}
               autoFocus
             />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label className="fw-bold">Prezzo Extra (€)</Form.Label>
+            <Form.Control
+              type="number"
+              step="0.5"
+              value={extraPrice}
+              onChange={(e) => setExtraPrice(Number(e.target.value))}
+            />
+            <Form.Text className="text-muted">
+              Sovrapprezzo applicato quando questo ingrediente viene scelto come
+              extra in un ordine. Usa un valore negativo per uno sconto (es.
+              Pizza Baby: -1).
+            </Form.Text>
           </Form.Group>
 
           <Form.Check

@@ -19,10 +19,17 @@ export type OrderType = "TAVOLO" | "ASPORTO";
 
 export type DestinationArea = "PIZZERIA" | "CUCINA" | "SALA";
 
+export interface OrderItemExtra {
+  ingredientName: string;
+  price: number;
+}
+
 export interface OrderItemRequestDTO {
   productId: number;
   quantity: number;
   notes?: string;
+  extraIngredientIds?: number[];
+  removedIngredientNames?: string[];
 }
 
 export interface AddOrderItemRequestDTO {
@@ -46,6 +53,8 @@ export interface OrderItem {
   takeawayUnitPrice: number | null;
   notes?: string;
   destinationArea?: DestinationArea | null;
+  extras?: OrderItemExtra[];
+  removedIngredients?: string[];
 }
 
 export interface Order {
@@ -70,14 +79,30 @@ export interface AppendItemsDTO {
     productId: number;
     quantity: number;
     notes?: string;
+    extraIngredientIds?: number[];
+    removedIngredientNames?: string[];
   }>;
   coverCount?: number | null;
+}
+
+export interface CartItemExtra {
+  ingredientId: number;
+  ingredientName: string;
+  price: number;
 }
 
 export interface CartItem {
   product: Product;
   quantity: number;
   notes?: string;
+  extras?: CartItemExtra[];
+  removedIngredients?: string[];
+}
+
+export interface PrintResultDTO {
+  destinationArea: DestinationArea | null;
+  success: boolean;
+  errorMessage: string | null;
 }
 
 export interface OrderSummaryProps {

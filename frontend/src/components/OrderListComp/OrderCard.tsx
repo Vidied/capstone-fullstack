@@ -18,6 +18,7 @@ interface OrderCardProps {
     orderType?: string,
   ) => void;
   onPrintTicket?: (order: Order) => void;
+  onReprintComanda?: (order: Order) => void;
   onDeleteSingleOrder?: (orderId: number) => void;
 }
 
@@ -26,6 +27,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({
   onNextStatus,
   onCancelOrder,
   onPrintTicket,
+  onReprintComanda,
   onDeleteSingleOrder,
 }) => {
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -39,6 +41,8 @@ export const OrderCard: React.FC<OrderCardProps> = ({
 
   const isServed = order.orderStatus === "SERVED";
   const isCompleted = order.orderStatus === "COMPLETED";
+  const isCancelled = order.orderStatus === "CANCELLED";
+  const isClosed = isCompleted || isCancelled;
 
   const coverCount = isTable ? (order.coverCount ?? 0) : 0;
   const coverUnitPrice = order.coverPrice ?? 2.0;
@@ -49,7 +53,9 @@ export const OrderCard: React.FC<OrderCardProps> = ({
         const unitPrice = isTakeaway
           ? (item.takeawayUnitPrice ?? item.unitPrice ?? 0)
           : (item.unitPrice ?? 0);
-        return sum + unitPrice * item.quantity;
+        const extrasPrice =
+          item.extras?.reduce((s, extra) => s + (extra.price ?? 0), 0) ?? 0;
+        return sum + (unitPrice + extrasPrice) * item.quantity;
       }, 0)
     : (order.totalAmount ?? 0);
 
@@ -125,9 +131,9 @@ export const OrderCard: React.FC<OrderCardProps> = ({
               Totale: € {calculatedTotal.toFixed(2)}
             </div>
 
-            {isCompleted ? (
+            {isClosed ? (
               <div className="d-flex gap-2">
-                {onPrintTicket && (
+                {isCompleted && onPrintTicket && (
                   <Button
                     size="sm"
                     variant="outline-secondary"
@@ -150,6 +156,17 @@ export const OrderCard: React.FC<OrderCardProps> = ({
               </div>
             ) : (
               <div className="d-flex gap-2 flex-wrap">
+                {onReprintComanda && (
+                  <Button
+                    size="sm"
+                    variant="outline-dark"
+                    className="fw-bold custom-input-border"
+                    onClick={() => onReprintComanda(order)}
+                  >
+                    Ristampa Comanda
+                  </Button>
+                )}
+
                 {isServed && onPrintTicket && (
                   <Button
                     size="sm"
